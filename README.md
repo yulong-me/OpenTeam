@@ -213,6 +213,55 @@ GATEWAY_PORT=7100 pnpm start
 GATEWAY_PORT=7100 pnpm dev:gateway
 ```
 
+### 桌面版
+
+桌面版复用现有后端、前端和单入口网关，由 Electron 托管三个本地进程：
+
+```bash
+pnpm desktop:dev
+```
+
+生成本机可运行的 macOS app 目录：
+
+```bash
+pnpm desktop:pack
+```
+
+生成 dmg / zip 安装产物：
+
+```bash
+pnpm desktop:dist
+```
+
+桌面版会优先使用 `7000` / `7001` / `7002`，如果这些端口已被占用，会自动选择空闲端口；用户只看到桌面窗口。可变数据不写入源码目录，而是写入系统应用数据目录下的 `runtime/`，包括 SQLite、日志、workspace 和 provider runtime。
+
+#### macOS 发布与自动更新
+
+桌面发布使用 GitHub Releases 作为更新源。正式发布时创建版本 tag：
+
+```bash
+git tag v0.1.1
+git push origin v0.1.1
+```
+
+`.github/workflows/desktop-release.yml` 会在 macOS runner 上构建并发布：
+
+- macOS: `dmg`、`zip`、`latest-mac.yml`
+
+自动更新由 `electron-updater` 处理。应用启动后会后台检查更新，下载完成后提示用户重启安装。用户数据保存在系统应用数据目录下的 `runtime/`，升级安装不会覆盖 SQLite、workspace、Provider 配置或日志。
+
+正式签名 / 公证需要在 GitHub Actions secrets 中配置：
+
+- `MAC_CSC_LINK`
+- `MAC_CSC_KEY_PASSWORD`
+- `APPLE_ID`
+- `APPLE_APP_SPECIFIC_PASSWORD`
+- `APPLE_TEAM_ID`
+
+推送 `codex/desktop-app` 分支会触发 macOS dry-run 打包，并上传 `desktop-macos` artifact。手动验证发布流水线时，也可在 GitHub Actions 里运行 `Desktop Release` workflow，并选择 `publish=never` 生成构建产物但不发布到 Release。
+
+完整发布门禁和升级演练见 [`docs/desktop-release-runbook.md`](docs/desktop-release-runbook.md)。
+
 ### 进入产品
 
 开发分离模式：

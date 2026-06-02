@@ -37,7 +37,7 @@
     "desktop:publish": "node scripts/build-desktop.mjs publish",
     "test:node-version": "node tests/check-node-version.test.mjs",
     "test:better-sqlite-native": "node tests/ensure-better-sqlite.test.mjs",
-    "test:desktop-launcher": "node tests/desktop-launcher.test.mjs",
+    "test:desktop-launcher": "node tests/desktop-launcher.test.mjs && node tests/desktop-express-protocol.test.mjs",
     "install:all": "pnpm -r install"
   },
   "build": {

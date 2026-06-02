@@ -1,17 +1,15 @@
 const { app, BrowserWindow, dialog, protocol } = require('electron');
 const { autoUpdater } = require('electron-updater');
-const { spawn } = require('node:child_process');
 const fs = require('node:fs');
-const http = require('node:http');
-const net = require('node:net');
+const { createRequire } = require('node:module');
 const path = require('node:path');
+const { pathToFileURL } = require('node:url');
+const { createExpressProtocolHandler } = require('./express-protocol.cjs');
 
 const isDev = !app.isPackaged;
 const appRoot = isDev ? path.resolve(__dirname, '..') : path.join(process.resourcesPath, 'app');
-let backendSocketPath;
-let frontendSocketPath;
-
-const children = new Set();
+let backendProtocolHandler;
+let frontendProtocolHandler;
 let mainWindow;
 let quitting = false;
 
@@ -46,64 +44,41 @@ function ensureDir(dir) {
   fs.mkdirSync(dir, { recursive: true });
 }
 
-function socketOpen(socketPath) {
-  return new Promise((resolve) => {
-    const socket = net.connect(socketPath);
-    socket.setTimeout(250);
-    socket.once('connect', () => {
-      socket.destroy();
-      resolve(true);
+function contentTypeFor(filePath) {
+  const ext = path.extname(filePath).toLowerCase();
+  if (ext === '.css') return 'text/css; charset=utf-8';
+  if (ext === '.js' || ext === '.mjs') return 'application/javascript; charset=utf-8';
+  if (ext === '.json') return 'application/json; charset=utf-8';
+  if (ext === '.svg') return 'image/svg+xml';
+  if (ext === '.png') return 'image/png';
+  if (ext === '.jpg' || ext === '.jpeg') return 'image/jpeg';
+  if (ext === '.webp') return 'image/webp';
+  if (ext === '.ico') return 'image/x-icon';
+  if (ext === '.woff') return 'font/woff';
+  if (ext === '.woff2') return 'font/woff2';
+  return 'application/octet-stream';
+}
+
+function safeJoin(root, relativePath) {
+  const normalized = path.normalize(relativePath);
+  if (normalized.startsWith('..') || path.isAbsolute(normalized)) return null;
+  return path.join(root, normalized);
+}
+
+async function staticFileResponse(filePath) {
+  try {
+    const body = await fs.promises.readFile(filePath);
+    return new Response(body, {
+      headers: {
+        'content-type': contentTypeFor(filePath),
+        'cache-control': 'public, max-age=31536000, immutable',
+      },
     });
-    socket.once('timeout', () => {
-      socket.destroy();
-      resolve(false);
+  } catch {
+    return new Response('Not found', {
+      status: 404,
+      headers: { 'content-type': 'text/plain; charset=utf-8' },
     });
-    socket.once('error', () => resolve(false));
-  });
-}
-
-async function waitForSocket(socketPath, label, timeoutMs = 30000) {
-  const started = Date.now();
-  while (Date.now() - started < timeoutMs) {
-    if (await socketOpen(socketPath)) return;
-    await new Promise((resolve) => setTimeout(resolve, 250));
-  }
-  throw new Error(`${label} did not start on ${socketPath}`);
-}
-
-function spawnManaged(name, command, args, options = {}) {
-  const proc = spawn(command, args, {
-    cwd: options.cwd || appRoot,
-    env: { ...process.env, ELECTRON_RUN_AS_NODE: '1', ...options.env },
-    stdio: ['ignore', 'pipe', 'pipe'],
-    shell: false,
-  });
-
-  children.add(proc);
-
-  const write = (stream, chunk) => {
-    const text = chunk.toString();
-    for (const line of text.split('\n').filter(Boolean)) {
-      stream.write(`[${name}] ${line}\n`);
-    }
-  };
-
-  proc.stdout.on('data', (chunk) => write(process.stdout, chunk));
-  proc.stderr.on('data', (chunk) => write(process.stderr, chunk));
-  proc.on('exit', (code, signal) => {
-    children.delete(proc);
-    if (!quitting && code !== 0) {
-      showStartupError(new Error(`${name} exited with ${signal || code}`));
-    }
-  });
-
-  return proc;
-}
-
-function stopChildren() {
-  quitting = true;
-  for (const child of children) {
-    if (!child.killed) child.kill();
   }
 }
 
@@ -121,67 +96,77 @@ function showStartupError(error) {
   }
 }
 
-function socketRequest(socketPath, request) {
-  return new Promise(async (resolve) => {
-    const url = new URL(request.url);
-    const body = Buffer.from(await request.arrayBuffer());
-    const headers = {};
-    request.headers.forEach((value, key) => {
-      if (!['host', 'connection', 'content-length'].includes(key.toLowerCase())) {
-        headers[key] = value;
-      }
-    });
-    if (body.length > 0) headers['content-length'] = String(body.length);
-
-    const req = http.request(
-      {
-        socketPath,
-        method: request.method,
-        path: `${url.pathname}${url.search}`,
-        headers,
-      },
-      (res) => {
-        const chunks = [];
-        res.on('data', (chunk) => chunks.push(chunk));
-        res.on('end', () => {
-          resolve(new Response(Buffer.concat(chunks), {
-            status: res.statusCode || 502,
-            statusText: res.statusMessage || undefined,
-            headers: Object.fromEntries(
-              Object.entries(res.headers)
-                .filter(([, value]) => value !== undefined)
-                .map(([key, value]) => [key, Array.isArray(value) ? value.join(', ') : String(value)]),
-            ),
-          }));
-        });
-      },
-    );
-
-    req.on('error', (error) => {
-      resolve(new Response(`OpenCouncil backend unavailable: ${error.message}`, {
-        status: 502,
+function setupInternalApiProtocol() {
+  protocol.handle('opencouncil-api', (request) => {
+    if (!backendProtocolHandler) {
+      return new Response('OpenCouncil backend is not ready', {
+        status: 503,
         headers: { 'content-type': 'text/plain; charset=utf-8' },
-      }));
-    });
-
-    if (body.length > 0) req.write(body);
-    req.end();
+      });
+    }
+    return backendProtocolHandler(request);
+  });
+  protocol.handle('opencouncil-app', (request) => {
+    if (!frontendProtocolHandler) {
+      return new Response('OpenCouncil frontend is not ready', {
+        status: 503,
+        headers: { 'content-type': 'text/plain; charset=utf-8' },
+      });
+    }
+    return frontendProtocolHandler(request);
   });
 }
 
-function setupInternalApiProtocol() {
-  protocol.handle('opencouncil-api', (request) => socketRequest(backendSocketPath, request));
-  protocol.handle('opencouncil-app', (request) => socketRequest(frontendSocketPath, request));
+async function loadBackendApp(commonEnv) {
+  Object.assign(process.env, commonEnv);
+  const backendModuleUrl = pathToFileURL(resolveAppPath('backend', 'dist', 'app.js')).href;
+  const backend = await import(backendModuleUrl);
+  backend.initializeBackendRuntime();
+  backend.initNoopSocketEmitter();
+  return backend.createBackendApp();
+}
+
+async function loadFrontendApp() {
+  const nextDir = isDev ? resolveAppPath('frontend') : resolveAppPath('frontend', '.next', 'standalone');
+  const staticRoot = isDev ? resolveAppPath('frontend', '.next', 'static') : resolveAppPath('frontend', '.next', 'standalone', '.next', 'static');
+  const nextRequire = createRequire(`${nextDir}/package.json`);
+  let nextConfig;
+  if (!isDev) {
+    const requiredServerFiles = nextRequire('./.next/required-server-files.json');
+    nextConfig = requiredServerFiles.config;
+    process.env.__NEXT_PRIVATE_STANDALONE_CONFIG = JSON.stringify(nextConfig);
+  }
+  const next = nextRequire('next');
+  const nextApp = next({
+    dev: false,
+    dir: nextDir,
+    ...(nextConfig ? { conf: nextConfig } : {}),
+  });
+  await nextApp.prepare();
+  const handle = nextApp.getRequestHandler();
+  const nextHandler = createExpressProtocolHandler((req, res) => handle(req, res));
+
+  return async (request) => {
+    const url = new URL(request.url);
+    if (url.pathname.startsWith('/_next/static/')) {
+      const relativePath = decodeURIComponent(url.pathname.slice('/_next/static/'.length));
+      const filePath = safeJoin(staticRoot, relativePath);
+      if (!filePath) {
+        return new Response('Not found', {
+          status: 404,
+          headers: { 'content-type': 'text/plain; charset=utf-8' },
+        });
+      }
+      return staticFileResponse(filePath);
+    }
+    return nextHandler(request);
+  };
 }
 
 async function startRuntime() {
   const userData = app.getPath('userData');
   const runtimeRoot = path.join(userData, 'runtime');
-  const socketRoot = path.join(runtimeRoot, 'sockets');
   ensureDir(runtimeRoot);
-  ensureDir(socketRoot);
-  backendSocketPath = path.join(socketRoot, 'backend.sock');
-  frontendSocketPath = path.join(socketRoot, 'frontend.sock');
 
   const commonEnv = {
     NODE_ENV: 'production',
@@ -189,25 +174,9 @@ async function startRuntime() {
     OPENCOUNCIL_BUILTIN_SKILLS_DIR: resolveAppPath('.agents', 'skills'),
   };
 
-  spawnManaged('backend', process.execPath, [resolveAppPath('backend', 'dist', 'server.js')], {
-    cwd: resolveAppPath('backend'),
-    env: {
-      ...commonEnv,
-      BACKEND_SOCKET_PATH: backendSocketPath,
-    },
-  });
-
-  spawnManaged('frontend', process.execPath, [resolveAppPath('desktop', 'frontend-socket-server.cjs')], {
-    cwd: isDev ? resolveAppPath('frontend') : resolveAppPath('frontend', '.next', 'standalone'),
-    env: {
-      ...commonEnv,
-      FRONTEND_SOCKET_PATH: frontendSocketPath,
-      NEXT_DIR: isDev ? resolveAppPath('frontend') : resolveAppPath('frontend', '.next', 'standalone'),
-    },
-  });
-
-  await waitForSocket(backendSocketPath, 'Backend');
-  await waitForSocket(frontendSocketPath, 'Frontend');
+  const backendApp = await loadBackendApp(commonEnv);
+  backendProtocolHandler = createExpressProtocolHandler(backendApp);
+  frontendProtocolHandler = await loadFrontendApp();
 }
 
 function createWindow() {
@@ -227,6 +196,14 @@ function createWindow() {
 
   const frontendUrl = new URL('opencouncil-app://local/');
   frontendUrl.searchParams.set('opencouncilApi', 'opencouncil-api://local');
+  mainWindow.webContents.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL) => {
+    console.error(`[renderer] failed to load ${validatedURL}: ${errorCode} ${errorDescription}`);
+  });
+  mainWindow.webContents.on('console-message', (_event, level, message, line, sourceId) => {
+    if (level >= 2) {
+      console.error(`[renderer] ${message} (${sourceId}:${line})`);
+    }
+  });
   mainWindow.loadURL(frontendUrl.toString());
   mainWindow.on('closed', () => {
     mainWindow = null;
@@ -271,7 +248,9 @@ function setupAutoUpdates() {
   });
 }
 
-app.on('before-quit', stopChildren);
+app.on('before-quit', () => {
+  quitting = true;
+});
 
 app.whenReady().then(async () => {
   try {

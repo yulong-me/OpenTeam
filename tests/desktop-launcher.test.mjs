@@ -8,6 +8,7 @@ const packageJson = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf8
 const mainSource = readFileSync(resolve(root, 'desktop/main.cjs'), 'utf8');
 const rebuildSource = readFileSync(resolve(root, 'scripts/rebuild-desktop-native.mjs'), 'utf8');
 const buildSource = readFileSync(resolve(root, 'scripts/build-desktop.mjs'), 'utf8');
+const gatewaySource = readFileSync(resolve(root, 'scripts/gateway.mjs'), 'utf8');
 const macLocalUpdateSource = readFileSync(resolve(root, 'scripts/build-mac-local-update.mjs'), 'utf8');
 const prepareFrontendStandaloneSource = readFileSync(resolve(root, 'scripts/prepare-frontend-standalone.mjs'), 'utf8');
 const updateFeedServerSource = readFileSync(resolve(root, 'scripts/serve-desktop-update-feed.mjs'), 'utf8');
@@ -73,6 +74,9 @@ assert.match(mainSource, /dialog\.showMessageBox/, 'desktop launcher must prompt
 assert.match(mainSource, /showMessageBox\(mainWindow && !mainWindow\.isDestroyed\(\) \? mainWindow : undefined/, 'desktop update prompt must tolerate a closed main window');
 assert.match(mainSource, /立即升级/, 'desktop update prompt must expose a clear upgrade action');
 assert.match(mainSource, /autoUpdater\.quitAndInstall\(\)/, 'desktop launcher must install downloaded updates on confirmation');
+
+assert.match(gatewaySource, /GATEWAY_HOST = process\.env\.GATEWAY_HOST \|\| '127\.0\.0\.1'/, 'gateway must default to loopback to match desktop port probing');
+assert.match(gatewaySource, /server\.listen\(GATEWAY_PORT, GATEWAY_HOST/, 'gateway must not bind every local interface by default');
 
 assert.match(rebuildSource, /require\('electron\/package\.json'\)\.version/, 'native rebuild must target the installed Electron version');
 assert.match(rebuildSource, /resolve\(root, 'backend'\)/, 'native rebuild must operate on backend dependencies');

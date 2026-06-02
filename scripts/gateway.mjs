@@ -3,6 +3,7 @@ import http from 'http';
 import net from 'net';
 
 const GATEWAY_PORT = parseInt(process.env.GATEWAY_PORT || '7000', 10);
+const GATEWAY_HOST = process.env.GATEWAY_HOST || '127.0.0.1';
 const FRONTEND_PORT = parseInt(process.env.FRONTEND_PORT || '7002', 10);
 const BACKEND_PORT = parseInt(process.env.BACKEND_PORT || '7001', 10);
 const FRONTEND_HOST = process.env.FRONTEND_HOST || '127.0.0.1';
@@ -108,12 +109,12 @@ server.on('upgrade', (req, socket, head) => {
 });
 
 server.on('error', (err) => {
-  console.error(`Gateway failed to start on port ${GATEWAY_PORT}: ${err.message}`);
+  console.error(`Gateway failed to start on ${GATEWAY_HOST}:${GATEWAY_PORT}: ${err.message}`);
   process.exit(1);
 });
 
-server.listen(GATEWAY_PORT, () => {
+server.listen(GATEWAY_PORT, GATEWAY_HOST, () => {
   console.log(
-    `Gateway listening on http://localhost:${GATEWAY_PORT} -> frontend http://${FRONTEND_HOST}:${FRONTEND_PORT}, backend http://${BACKEND_HOST}:${BACKEND_PORT}`,
+    `Gateway listening on http://${GATEWAY_HOST}:${GATEWAY_PORT} -> frontend http://${FRONTEND_HOST}:${FRONTEND_PORT}, backend http://${BACKEND_HOST}:${BACKEND_PORT}`,
   );
 });

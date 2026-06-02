@@ -261,6 +261,7 @@ git push origin v0.1.1
 推送 `codex/desktop-app` 分支会触发 macOS dry-run 打包，并上传 `desktop-macos` artifact。手动验证发布流水线时，也可在 GitHub Actions 里运行 `Desktop Release` workflow，并选择 `publish=never` 生成构建产物但不发布到 Release。
 
 完整发布门禁和升级演练见 [`docs/desktop-release-runbook.md`](docs/desktop-release-runbook.md)。
+Apple 签名和公证配置见 [`docs/macos-signing-setup.md`](docs/macos-signing-setup.md)。
 
 ### 进入产品
 

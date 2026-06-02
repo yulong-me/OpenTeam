@@ -78,12 +78,18 @@ assert.match(rebuildSource, /require\('electron\/package\.json'\)\.version/, 'na
 assert.match(rebuildSource, /resolve\(root, 'backend'\)/, 'native rebuild must operate on backend dependencies');
 assert.match(rebuildSource, /better-sqlite3/, 'native rebuild must include better-sqlite3');
 assert.match(buildSource, /buildMacDistributables/, 'desktop build script must customize macOS artifact generation');
+assert.match(buildSource, /macDryRunConfigPath/, 'desktop build script must isolate local dry-run macOS signing config');
+assert.match(buildSource, /identity: null/, 'macOS dry-run builds must be unsigned instead of ad-hoc signed');
+assert.match(buildSource, /hardenedRuntime: false/, 'macOS dry-run builds must not use hardened runtime without Developer ID signing');
+assert.match(buildSource, /notarize: false/, 'macOS dry-run builds must not try notarization');
 assert.match(buildSource, /desktop:preflight/, 'desktop build script must run release preflight');
 assert.match(buildSource, /desktop:prepare-frontend-standalone/, 'desktop build script must prepare standalone frontend assets before packaging');
 assert.match(buildSource, /DESKTOP_PUBLISH_MODE: publish/, 'desktop build script must pass publish mode to preflight');
 assert.match(buildSource, /'mac-arm64' : 'mac', 'OpenCouncil\.app'/, 'desktop build script must pass the real .app bundle to --prepackaged');
 assert.doesNotMatch(buildSource, /writeFileSync\(.*app-update\.yml/s, 'desktop build script must not mutate signed macOS apps after packaging');
-assert.match(buildSource, /electronBuilder\(\['--dir', '--publish', publish\]\)/, 'desktop build script must create a prepackaged app with publish metadata before artifacts');
+assert.match(buildSource, /electronBuilder\(\['--dir', \.\.\.configArgs, '--publish', publish\]\)/, 'desktop build script must create a prepackaged app with publish metadata before artifacts');
+assert.match(buildSource, /buildMacDistributables\('always'\)/, 'desktop publish builds must use the signed production macOS configuration');
+assert.match(buildSource, /buildMacDistributables\('never', macDryRunConfigPath\(\)\)/, 'desktop dry-run builds must use the unsigned macOS configuration');
 assert.match(buildSource, /'--mac', 'dmg'/, 'desktop build script must build macOS dmg explicitly');
 assert.match(buildSource, /'--mac', 'zip'/, 'desktop build script must build macOS zip explicitly for auto-update');
 assert.ok(

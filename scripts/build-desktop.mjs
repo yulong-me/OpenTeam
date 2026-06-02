@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 import { spawnSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const root = resolve(import.meta.dirname, '..');
 const pnpm = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
 const mode = process.argv[2] ?? 'pack';
+const packageJson = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf8'));
 
 function run(command, args) {
   const result = spawnSync(command, args, {
@@ -21,6 +22,22 @@ function run(command, args) {
 
 function electronBuilder(args) {
   run(pnpm, ['exec', 'electron-builder', ...args]);
+}
+
+function macDryRunConfigPath() {
+  const dir = resolve(root, 'release', '.desktop-build');
+  mkdirSync(dir, { recursive: true });
+  const configPath = resolve(dir, 'electron-builder-mac-dry-run.json');
+  writeFileSync(configPath, `${JSON.stringify({
+    ...packageJson.build,
+    mac: {
+      ...packageJson.build.mac,
+      hardenedRuntime: false,
+      identity: null,
+      notarize: false,
+    },
+  }, null, 2)}\n`);
+  return configPath;
 }
 
 function buildRuntime() {
@@ -54,22 +71,23 @@ function macAppDir() {
   return dir;
 }
 
-function buildMacDistributables(publish) {
-  electronBuilder(['--dir', '--publish', publish]);
+function buildMacDistributables(publish, configPath) {
+  const configArgs = configPath ? ['--config', configPath] : [];
+  electronBuilder(['--dir', ...configArgs, '--publish', publish]);
   const appDir = macAppDir();
-  electronBuilder(['--prepackaged', appDir, '--mac', 'dmg', '--publish', publish]);
-  electronBuilder(['--prepackaged', appDir, '--mac', 'zip', '--publish', publish]);
+  electronBuilder(['--prepackaged', appDir, '--mac', 'dmg', ...configArgs, '--publish', publish]);
+  electronBuilder(['--prepackaged', appDir, '--mac', 'zip', ...configArgs, '--publish', publish]);
 }
 
 if (mode === 'pack') {
   preflight('never');
   buildRuntime();
-  electronBuilder(['--dir']);
+  electronBuilder(['--dir', '--config', macDryRunConfigPath()]);
 } else if (mode === 'dist-local') {
   preflight('never');
   buildRuntime();
   if (process.platform === 'darwin') {
-    buildMacDistributables('never');
+    buildMacDistributables('never', macDryRunConfigPath());
   } else if (process.platform === 'win32') {
     electronBuilder(['--win', '--x64', '--publish', 'never']);
   } else {

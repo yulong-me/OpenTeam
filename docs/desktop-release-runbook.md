@@ -26,6 +26,8 @@ macOS:
 - `APPLE_APP_SPECIFIC_PASSWORD`
 - `APPLE_TEAM_ID`
 
+Setup details: [`docs/macos-signing-setup.md`](macos-signing-setup.md).
+
 ## Dry-Run Gate
 
 Push branch `codex/desktop-app` or run the `Desktop Release` workflow manually

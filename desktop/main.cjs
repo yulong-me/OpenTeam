@@ -108,7 +108,7 @@ function stopChildren() {
 
 function showStartupError(error) {
   const message = error instanceof Error ? error.message : String(error);
-  if (mainWindow) {
+  if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(`
       <main style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; padding: 32px; line-height: 1.5;">
         <h1>OpenCouncil could not start</h1>
@@ -190,6 +190,9 @@ function createWindow() {
   });
 
   mainWindow.loadURL(`http://127.0.0.1:${gatewayPort}`);
+  mainWindow.on('closed', () => {
+    mainWindow = null;
+  });
 }
 
 function setupAutoUpdates() {
@@ -209,7 +212,7 @@ function setupAutoUpdates() {
   });
 
   autoUpdater.on('update-downloaded', async () => {
-    const result = await dialog.showMessageBox(mainWindow, {
+    const result = await dialog.showMessageBox(mainWindow && !mainWindow.isDestroyed() ? mainWindow : undefined, {
       type: 'info',
       buttons: ['立即升级', '稍后'],
       defaultId: 0,
@@ -247,7 +250,11 @@ app.on('window-all-closed', () => {
 });
 
 app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0 && mainWindow) {
-    mainWindow.show();
+  if (BrowserWindow.getAllWindows().length === 0) {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.show();
+    } else {
+      createWindow();
+    }
   }
 });

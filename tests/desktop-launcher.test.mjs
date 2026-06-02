@@ -58,6 +58,8 @@ assert.match(mainSource, /let backendPort = Number\(process\.env\.BACKEND_PORT \
 assert.match(mainSource, /let frontendPort = Number\(process\.env\.FRONTEND_PORT \|\| 7002\)/, 'desktop launcher must keep the frontend default');
 assert.match(mainSource, /findAvailablePort\(gatewayPort\)/, 'desktop launcher must avoid gateway port collisions');
 assert.match(mainSource, /loadURL\(`http:\/\/127\.0\.0\.1:\$\{gatewayPort\}`\)/, 'desktop window must load the gateway URL');
+assert.match(mainSource, /mainWindow\.on\('closed'/, 'desktop launcher must clear destroyed window references');
+assert.match(mainSource, /!mainWindow\.isDestroyed\(\)/, 'desktop launcher must not reuse destroyed windows');
 assert.match(mainSource, /app\.on\('before-quit'/, 'desktop launcher must clean up child processes on quit');
 assert.match(mainSource, /ELECTRON_RUN_AS_NODE: '1'/, 'desktop child services must run under Node mode when spawned by Electron');
 assert.match(mainSource, /process\.resourcesPath, 'app'/, 'packaged runtime must resolve files from the packaged app resources directory');
@@ -68,6 +70,7 @@ assert.match(mainSource, /autoUpdater\.checkForUpdatesAndNotify\(\)/, 'desktop l
 assert.match(mainSource, /autoUpdater\.autoDownload = true/, 'desktop updates should download in the background');
 assert.match(mainSource, /update-downloaded/, 'desktop launcher must handle downloaded updates');
 assert.match(mainSource, /dialog\.showMessageBox/, 'desktop launcher must prompt before restart update');
+assert.match(mainSource, /showMessageBox\(mainWindow && !mainWindow\.isDestroyed\(\) \? mainWindow : undefined/, 'desktop update prompt must tolerate a closed main window');
 assert.match(mainSource, /立即升级/, 'desktop update prompt must expose a clear upgrade action');
 assert.match(mainSource, /autoUpdater\.quitAndInstall\(\)/, 'desktop launcher must install downloaded updates on confirmation');
 

@@ -57,7 +57,6 @@
     "generateUpdatesFilesForAllChannels": true,
     "files": [
       "desktop/**/*",
-      "scripts/gateway.mjs",
       ".agents/skills/**/*",
       "backend/dist/**/*",
       "backend/package.json",

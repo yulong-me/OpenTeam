@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
+import { existsSync, unlinkSync } from 'fs';
 import { Server as SocketIOServer } from 'socket.io';
 import { roomsRouter } from './routes/rooms.js';
 import { agentsRouter } from './routes/agents.js';
@@ -101,7 +102,17 @@ io.on('connection', (socket) => {
 import { initSocketEmitter } from './services/socketEmitter.js';
 initSocketEmitter(io);
 
+const BACKEND_SOCKET_PATH = process.env.BACKEND_SOCKET_PATH?.trim();
 const BACKEND_PORT = parseInt(process.env.PORT || '7001', 10);
-httpServer.listen(BACKEND_PORT, () => {
-  log('INFO', `Backend running on http://localhost:${BACKEND_PORT}`);
-});
+
+if (BACKEND_SOCKET_PATH) {
+  if (existsSync(BACKEND_SOCKET_PATH)) unlinkSync(BACKEND_SOCKET_PATH);
+  httpServer.listen(BACKEND_SOCKET_PATH, () => {
+    log('INFO', `Backend running on unix://${BACKEND_SOCKET_PATH}`);
+  });
+} else {
+  const BACKEND_HOST = process.env.BACKEND_HOST || '127.0.0.1';
+  httpServer.listen(BACKEND_PORT, BACKEND_HOST, () => {
+    log('INFO', `Backend running on http://${BACKEND_HOST}:${BACKEND_PORT}`);
+  });
+}

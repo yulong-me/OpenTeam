@@ -3,13 +3,15 @@
  *
  * Resolution order (first match wins):
  *   1. Non-empty `process.env.NEXT_PUBLIC_API_URL` — explicit override (production / docker)
- *   2. If current page runs on official localhost frontend port 7002, talk to localhost:7001
- *   3. In development bundles only, fallback localhost frontend ports also talk to localhost:7001
- *   4. `window.location.protocol + '//' + window.location.host` — same origin (gateway / proxy deployments)
+ *   2. `opencouncilApi` query parameter — Electron custom protocol bridge
+ *   3. If current page runs on official localhost frontend port 7002, talk to localhost:7001
+ *   4. In development bundles only, fallback localhost frontend ports also talk to localhost:7001
+ *   5. `window.location.protocol + '//' + window.location.host` — same origin (gateway / proxy deployments)
  *
  * This supports:
  *   - dev: frontend `7002` or a fallback port -> backend `7001`
  *   - dev:gateway / prod gateway: browser hits same-origin `7000`
+ *   - desktop: frontend page hits `opencouncil-api://local` through Electron
  *
  * This replaces all inline `http://localhost:7001` hardcodes across components.
  */
@@ -18,6 +20,9 @@ export function resolveDefaultApiUrl(): string {
   if (typeof window === 'undefined') return 'http://localhost:7001';
 
   const { protocol, hostname, host, port } = window.location;
+  const desktopApiUrl = new URL(window.location.href).searchParams.get('opencouncilApi')?.trim();
+  if (desktopApiUrl) return desktopApiUrl.replace(/\/$/, '');
+
   const isLocalHost = hostname === 'localhost' || hostname === '127.0.0.1';
   const isDevelopmentBundle = process.env.NODE_ENV !== 'production';
 

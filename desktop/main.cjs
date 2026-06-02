@@ -1,21 +1,42 @@
-const { app, BrowserWindow, dialog } = require('electron');
+const { app, BrowserWindow, dialog, protocol } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const { spawn } = require('node:child_process');
 const fs = require('node:fs');
+const http = require('node:http');
 const net = require('node:net');
 const path = require('node:path');
 
 const isDev = !app.isPackaged;
 const appRoot = isDev ? path.resolve(__dirname, '..') : path.join(process.resourcesPath, 'app');
-let gatewayPort = Number(process.env.GATEWAY_PORT || 7000);
-let backendPort = Number(process.env.BACKEND_PORT || 7001);
-let frontendPort = Number(process.env.FRONTEND_PORT || 7002);
+let backendSocketPath;
+let frontendSocketPath;
 
 const children = new Set();
 let mainWindow;
 let quitting = false;
 
 autoUpdater.autoDownload = true;
+
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: 'opencouncil-app',
+    privileges: {
+      standard: true,
+      secure: true,
+      supportFetchAPI: true,
+      corsEnabled: true,
+    },
+  },
+  {
+    scheme: 'opencouncil-api',
+    privileges: {
+      standard: true,
+      secure: true,
+      supportFetchAPI: true,
+      corsEnabled: true,
+    },
+  },
+]);
 
 function resolveAppPath(...parts) {
   return path.join(appRoot, ...parts);
@@ -25,9 +46,9 @@ function ensureDir(dir) {
   fs.mkdirSync(dir, { recursive: true });
 }
 
-function portOpen(port, host = '127.0.0.1') {
+function socketOpen(socketPath) {
   return new Promise((resolve) => {
-    const socket = net.connect(port, host);
+    const socket = net.connect(socketPath);
     socket.setTimeout(250);
     socket.once('connect', () => {
       socket.destroy();
@@ -41,33 +62,13 @@ function portOpen(port, host = '127.0.0.1') {
   });
 }
 
-async function waitForPort(port, label, timeoutMs = 30000) {
+async function waitForSocket(socketPath, label, timeoutMs = 30000) {
   const started = Date.now();
   while (Date.now() - started < timeoutMs) {
-    if (await portOpen(port)) return;
+    if (await socketOpen(socketPath)) return;
     await new Promise((resolve) => setTimeout(resolve, 250));
   }
-  throw new Error(`${label} did not start on port ${port}`);
-}
-
-function findAvailablePort(preferredPort) {
-  return new Promise((resolve, reject) => {
-    const server = net.createServer();
-    server.unref();
-    server.once('error', () => {
-      const fallback = net.createServer();
-      fallback.unref();
-      fallback.once('error', reject);
-      fallback.listen(0, '127.0.0.1', () => {
-        const address = fallback.address();
-        fallback.close(() => resolve(address.port));
-      });
-    });
-    server.listen(preferredPort, '127.0.0.1', () => {
-      const address = server.address();
-      server.close(() => resolve(address.port));
-    });
-  });
+  throw new Error(`${label} did not start on ${socketPath}`);
 }
 
 function spawnManaged(name, command, args, options = {}) {
@@ -120,14 +121,67 @@ function showStartupError(error) {
   }
 }
 
+function socketRequest(socketPath, request) {
+  return new Promise(async (resolve) => {
+    const url = new URL(request.url);
+    const body = Buffer.from(await request.arrayBuffer());
+    const headers = {};
+    request.headers.forEach((value, key) => {
+      if (!['host', 'connection', 'content-length'].includes(key.toLowerCase())) {
+        headers[key] = value;
+      }
+    });
+    if (body.length > 0) headers['content-length'] = String(body.length);
+
+    const req = http.request(
+      {
+        socketPath,
+        method: request.method,
+        path: `${url.pathname}${url.search}`,
+        headers,
+      },
+      (res) => {
+        const chunks = [];
+        res.on('data', (chunk) => chunks.push(chunk));
+        res.on('end', () => {
+          resolve(new Response(Buffer.concat(chunks), {
+            status: res.statusCode || 502,
+            statusText: res.statusMessage || undefined,
+            headers: Object.fromEntries(
+              Object.entries(res.headers)
+                .filter(([, value]) => value !== undefined)
+                .map(([key, value]) => [key, Array.isArray(value) ? value.join(', ') : String(value)]),
+            ),
+          }));
+        });
+      },
+    );
+
+    req.on('error', (error) => {
+      resolve(new Response(`OpenCouncil backend unavailable: ${error.message}`, {
+        status: 502,
+        headers: { 'content-type': 'text/plain; charset=utf-8' },
+      }));
+    });
+
+    if (body.length > 0) req.write(body);
+    req.end();
+  });
+}
+
+function setupInternalApiProtocol() {
+  protocol.handle('opencouncil-api', (request) => socketRequest(backendSocketPath, request));
+  protocol.handle('opencouncil-app', (request) => socketRequest(frontendSocketPath, request));
+}
+
 async function startRuntime() {
   const userData = app.getPath('userData');
   const runtimeRoot = path.join(userData, 'runtime');
+  const socketRoot = path.join(runtimeRoot, 'sockets');
   ensureDir(runtimeRoot);
-
-  backendPort = await findAvailablePort(backendPort);
-  frontendPort = await findAvailablePort(frontendPort);
-  gatewayPort = await findAvailablePort(gatewayPort);
+  ensureDir(socketRoot);
+  backendSocketPath = path.join(socketRoot, 'backend.sock');
+  frontendSocketPath = path.join(socketRoot, 'frontend.sock');
 
   const commonEnv = {
     NODE_ENV: 'production',
@@ -139,39 +193,21 @@ async function startRuntime() {
     cwd: resolveAppPath('backend'),
     env: {
       ...commonEnv,
-      PORT: String(backendPort),
+      BACKEND_SOCKET_PATH: backendSocketPath,
     },
   });
 
-  const frontendCommand = isDev
-    ? resolveAppPath('frontend', 'node_modules', 'next', 'dist', 'bin', 'next')
-    : resolveAppPath('frontend', '.next', 'standalone', 'server.js');
-  const frontendArgs = isDev
-    ? [frontendCommand, 'start', '-p', String(frontendPort)]
-    : [frontendCommand];
-
-  spawnManaged('frontend', process.execPath, frontendArgs, {
+  spawnManaged('frontend', process.execPath, [resolveAppPath('desktop', 'frontend-socket-server.cjs')], {
     cwd: isDev ? resolveAppPath('frontend') : resolveAppPath('frontend', '.next', 'standalone'),
     env: {
       ...commonEnv,
-      PORT: String(frontendPort),
+      FRONTEND_SOCKET_PATH: frontendSocketPath,
+      NEXT_DIR: isDev ? resolveAppPath('frontend') : resolveAppPath('frontend', '.next', 'standalone'),
     },
   });
 
-  await waitForPort(backendPort, 'Backend');
-  await waitForPort(frontendPort, 'Frontend');
-
-  spawnManaged('gateway', process.execPath, [resolveAppPath('scripts', 'gateway.mjs')], {
-    cwd: appRoot,
-    env: {
-      ...commonEnv,
-      GATEWAY_PORT: String(gatewayPort),
-      BACKEND_PORT: String(backendPort),
-      FRONTEND_PORT: String(frontendPort),
-    },
-  });
-
-  await waitForPort(gatewayPort, 'Gateway');
+  await waitForSocket(backendSocketPath, 'Backend');
+  await waitForSocket(frontendSocketPath, 'Frontend');
 }
 
 function createWindow() {
@@ -189,7 +225,9 @@ function createWindow() {
     },
   });
 
-  mainWindow.loadURL(`http://127.0.0.1:${gatewayPort}`);
+  const frontendUrl = new URL('opencouncil-app://local/');
+  frontendUrl.searchParams.set('opencouncilApi', 'opencouncil-api://local');
+  mainWindow.loadURL(frontendUrl.toString());
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
@@ -237,6 +275,7 @@ app.on('before-quit', stopChildren);
 
 app.whenReady().then(async () => {
   try {
+    setupInternalApiProtocol();
     await startRuntime();
     createWindow();
     setupAutoUpdates();

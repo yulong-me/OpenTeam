@@ -25,6 +25,7 @@ function electronBuilder(args) {
 
 function buildRuntime() {
   run(pnpm, ['build']);
+  run(pnpm, ['run', 'desktop:prepare-frontend-standalone']);
   run(pnpm, ['run', 'desktop:rebuild-native']);
 }
 

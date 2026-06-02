@@ -142,6 +142,7 @@ const buildConfig = {
 writeFileSync(configPath, `${JSON.stringify(buildConfig, null, 2)}\n`);
 
 run(pnpm, ['build']);
+run(pnpm, ['run', 'desktop:prepare-frontend-standalone']);
 run(pnpm, ['run', 'desktop:rebuild-native']);
 
 electronBuilder(['--dir', '--config', configPath, '--publish', 'never']);

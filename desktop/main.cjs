@@ -143,13 +143,15 @@ async function startRuntime() {
     },
   });
 
-  spawnManaged('frontend', process.execPath, [
-    resolveAppPath('frontend', 'node_modules', 'next', 'dist', 'bin', 'next'),
-    'start',
-    '-p',
-    String(frontendPort),
-  ], {
-    cwd: resolveAppPath('frontend'),
+  const frontendCommand = isDev
+    ? resolveAppPath('frontend', 'node_modules', 'next', 'dist', 'bin', 'next')
+    : resolveAppPath('frontend', '.next', 'standalone', 'server.js');
+  const frontendArgs = isDev
+    ? [frontendCommand, 'start', '-p', String(frontendPort)]
+    : [frontendCommand];
+
+  spawnManaged('frontend', process.execPath, frontendArgs, {
+    cwd: isDev ? resolveAppPath('frontend') : resolveAppPath('frontend', '.next', 'standalone'),
     env: {
       ...commonEnv,
       PORT: String(frontendPort),

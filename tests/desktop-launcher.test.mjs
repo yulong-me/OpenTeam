@@ -9,6 +9,7 @@ const mainSource = readFileSync(resolve(root, 'desktop/main.cjs'), 'utf8');
 const rebuildSource = readFileSync(resolve(root, 'scripts/rebuild-desktop-native.mjs'), 'utf8');
 const buildSource = readFileSync(resolve(root, 'scripts/build-desktop.mjs'), 'utf8');
 const macLocalUpdateSource = readFileSync(resolve(root, 'scripts/build-mac-local-update.mjs'), 'utf8');
+const prepareFrontendStandaloneSource = readFileSync(resolve(root, 'scripts/prepare-frontend-standalone.mjs'), 'utf8');
 const updateFeedServerSource = readFileSync(resolve(root, 'scripts/serve-desktop-update-feed.mjs'), 'utf8');
 const preflightSource = readFileSync(resolve(root, 'scripts/desktop-release-preflight.mjs'), 'utf8');
 const verifyArtifactsSource = readFileSync(resolve(root, 'scripts/verify-desktop-artifacts.mjs'), 'utf8');
@@ -20,6 +21,7 @@ assert.equal(packageJson.main, 'desktop/main.cjs');
 assert.equal((packageSource.match(/"dependencies"\s*:/g) ?? []).length, 1, 'package.json must contain one dependencies field');
 assert.equal(packageJson.scripts['desktop:rebuild-native'], 'node scripts/rebuild-desktop-native.mjs');
 assert.equal(packageJson.scripts['desktop:preflight'], 'node scripts/desktop-release-preflight.mjs');
+assert.equal(packageJson.scripts['desktop:prepare-frontend-standalone'], 'node scripts/prepare-frontend-standalone.mjs');
 assert.equal(packageJson.scripts['desktop:verify-artifacts'], 'node scripts/verify-desktop-artifacts.mjs');
 assert.equal(packageJson.scripts['desktop:dev'], 'pnpm build && pnpm run desktop:rebuild-native && electron desktop/main.cjs');
 assert.equal(packageJson.scripts['desktop:pack'], 'node scripts/build-desktop.mjs pack');
@@ -49,6 +51,7 @@ assert.match(mainSource, /OPENCOUNCIL_RUNTIME_ROOT/, 'desktop runtime must isola
 assert.match(mainSource, /OPENCOUNCIL_BUILTIN_SKILLS_DIR/, 'desktop runtime must still find builtin agent skills');
 assert.match(mainSource, /resolveAppPath\('backend', 'dist', 'server\.js'\)/, 'desktop launcher must start compiled backend');
 assert.match(mainSource, /resolveAppPath\('frontend', 'node_modules', 'next', 'dist', 'bin', 'next'\)/, 'desktop launcher must start Next production server without shelling through pnpm');
+assert.match(mainSource, /resolveAppPath\('frontend', '\.next', 'standalone', 'server\.js'\)/, 'packaged desktop launcher must start the Next standalone server');
 assert.match(mainSource, /resolveAppPath\('scripts', 'gateway\.mjs'\)/, 'desktop launcher must reuse the single-port gateway');
 assert.match(mainSource, /let gatewayPort = Number\(process\.env\.GATEWAY_PORT \|\| 7000\)/, 'desktop launcher must keep the public gateway default');
 assert.match(mainSource, /let backendPort = Number\(process\.env\.BACKEND_PORT \|\| 7001\)/, 'desktop launcher must keep the backend default');
@@ -73,6 +76,7 @@ assert.match(rebuildSource, /resolve\(root, 'backend'\)/, 'native rebuild must o
 assert.match(rebuildSource, /better-sqlite3/, 'native rebuild must include better-sqlite3');
 assert.match(buildSource, /buildMacDistributables/, 'desktop build script must customize macOS artifact generation');
 assert.match(buildSource, /desktop:preflight/, 'desktop build script must run release preflight');
+assert.match(buildSource, /desktop:prepare-frontend-standalone/, 'desktop build script must prepare standalone frontend assets before packaging');
 assert.match(buildSource, /DESKTOP_PUBLISH_MODE: publish/, 'desktop build script must pass publish mode to preflight');
 assert.doesNotMatch(buildSource, /writeFileSync\(.*app-update\.yml/s, 'desktop build script must not mutate signed macOS apps after packaging');
 assert.match(buildSource, /electronBuilder\(\['--dir', '--publish', publish\]\)/, 'desktop build script must create a prepackaged app with publish metadata before artifacts');
@@ -83,6 +87,18 @@ assert.ok(
   'macOS dmg must be built before zip to avoid concurrent artifact packaging',
 );
 assert.match(buildSource, /'--win', '--x64', '--publish', 'always'/, 'desktop build script must publish Windows x64 artifacts');
+
+assert.match(prepareFrontendStandaloneSource, /\.next', 'standalone'/, 'frontend standalone preparation must target the Next standalone directory');
+assert.match(prepareFrontendStandaloneSource, /\.next', 'static'/, 'frontend standalone preparation must copy static assets');
+assert.match(prepareFrontendStandaloneSource, /public/, 'frontend standalone preparation must copy public assets when present');
+assert.ok(
+  packageJson.build.files.includes('frontend/.next/standalone/**/*'),
+  'desktop package must include only the standalone frontend runtime',
+);
+assert.ok(
+  !packageJson.build.files.includes('frontend/node_modules/**/*'),
+  'desktop package must not include full frontend node_modules',
+);
 
 assert.match(macLocalUpdateSource, /DESKTOP_RELEASE_VERSION/, 'macOS local update rehearsal must support explicit old and new versions');
 assert.match(macLocalUpdateSource, /DESKTOP_UPDATE_URL/, 'macOS local update rehearsal must embed a local update feed URL');

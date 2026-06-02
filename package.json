@@ -25,6 +25,7 @@
     "build:backend": "pnpm --dir backend build",
     "build:frontend": "pnpm --dir frontend build",
     "desktop:preflight": "node scripts/desktop-release-preflight.mjs",
+    "desktop:prepare-frontend-standalone": "node scripts/prepare-frontend-standalone.mjs",
     "desktop:rebuild-native": "node scripts/rebuild-desktop-native.mjs",
     "desktop:verify-artifacts": "node scripts/verify-desktop-artifacts.mjs",
     "desktop:dev": "pnpm build && pnpm run desktop:rebuild-native && electron desktop/main.cjs",
@@ -61,10 +62,7 @@
       "backend/dist/**/*",
       "backend/package.json",
       "backend/node_modules/**/*",
-      "frontend/.next/**/*",
-      "frontend/public/**/*",
-      "frontend/package.json",
-      "frontend/node_modules/**/*"
+      "frontend/.next/standalone/**/*"
     ],
     "asar": false,
     "mac": {

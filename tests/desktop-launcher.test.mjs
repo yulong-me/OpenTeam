@@ -135,6 +135,9 @@ assert.match(releaseWorkflow, /pnpm desktop:dist:local/, 'release workflow must 
 assert.match(releaseWorkflow, /pnpm run desktop:preflight/, 'release workflow must run release preflight');
 assert.match(releaseWorkflow, /pnpm run desktop:verify-artifacts/, 'release workflow must verify desktop artifacts');
 assert.match(releaseWorkflow, /DESKTOP_TARGET_PLATFORM: darwin/, 'release workflow must preflight macOS secrets');
+assert.match(releaseWorkflow, /path: release\/OpenCouncil-\*-arm64\.dmg/, 'branch macOS artifacts should upload only the installable dmg');
+assert.doesNotMatch(releaseWorkflow, /release\/\*\.zip/, 'branch macOS artifact upload must not include updater zip files');
+assert.doesNotMatch(releaseWorkflow, /release\/\*\.yml/, 'branch macOS artifact upload must not include update metadata');
 assert.match(releaseWorkflow, /CSC_LINK/, 'release workflow must support code signing certificates');
 assert.match(releaseWorkflow, /APPLE_ID/, 'release workflow must support macOS notarization credentials');
 assert.doesNotMatch(releaseWorkflow, /WIN_CSC_LINK/, 'macOS release workflow must not require Windows code signing certificates');

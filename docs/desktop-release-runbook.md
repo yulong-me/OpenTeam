@@ -39,7 +39,11 @@ Required evidence:
 
 - macOS job passes `desktop:preflight`
 - macOS job passes `desktop:verify-artifacts`
-- workflow uploads `desktop-macos` artifacts
+- workflow uploads `desktop-macos` with only `OpenCouncil-<version>-<arch>.dmg`
+
+Dry-run branch artifacts are for packaging verification. Because they are not
+Developer ID signed and notarized, macOS may show them as damaged after
+download. Customer-installable builds require the publish gate below.
 
 ## Publish Gate
 

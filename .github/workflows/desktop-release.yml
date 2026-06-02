@@ -98,8 +98,4 @@ jobs:
         if: github.ref_type != 'tag' && inputs.publish != 'always'
         with:
           name: desktop-macos
-          path: |
-            release/*.dmg
-            release/*.zip
-            release/*.yml
-            release/*.blockmap
+          path: release/OpenCouncil-*-arm64.dmg

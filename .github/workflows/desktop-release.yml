@@ -34,11 +34,6 @@ jobs:
       CI: true
       NEXT_TELEMETRY_DISABLED: 1
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
-      CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
-      APPLE_ID: ${{ secrets.APPLE_ID }}
-      APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
     steps:
       - name: Check out repository
@@ -70,14 +65,27 @@ jobs:
         env:
           DESKTOP_PUBLISH_MODE: ${{ (github.ref_type == 'tag' || inputs.publish == 'always') && 'always' || 'never' }}
           DESKTOP_TARGET_PLATFORM: darwin
+          CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
       - name: Build and publish desktop artifacts
         run: pnpm desktop:publish
         if: github.ref_type == 'tag' || inputs.publish == 'always'
+        env:
+          CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
       - name: Build desktop artifacts without publishing
         run: pnpm desktop:dist:local
         if: github.ref_type != 'tag' && inputs.publish != 'always'
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
 
       - name: Verify desktop artifacts
         run: pnpm run desktop:verify-artifacts

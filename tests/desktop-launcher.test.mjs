@@ -81,6 +81,7 @@ assert.match(buildSource, /buildMacDistributables/, 'desktop build script must c
 assert.match(buildSource, /desktop:preflight/, 'desktop build script must run release preflight');
 assert.match(buildSource, /desktop:prepare-frontend-standalone/, 'desktop build script must prepare standalone frontend assets before packaging');
 assert.match(buildSource, /DESKTOP_PUBLISH_MODE: publish/, 'desktop build script must pass publish mode to preflight');
+assert.match(buildSource, /'mac-arm64' : 'mac', 'OpenCouncil\.app'/, 'desktop build script must pass the real .app bundle to --prepackaged');
 assert.doesNotMatch(buildSource, /writeFileSync\(.*app-update\.yml/s, 'desktop build script must not mutate signed macOS apps after packaging');
 assert.match(buildSource, /electronBuilder\(\['--dir', '--publish', publish\]\)/, 'desktop build script must create a prepackaged app with publish metadata before artifacts');
 assert.match(buildSource, /'--mac', 'dmg'/, 'desktop build script must build macOS dmg explicitly');
@@ -105,6 +106,7 @@ assert.ok(
 
 assert.match(macLocalUpdateSource, /DESKTOP_RELEASE_VERSION/, 'macOS local update rehearsal must support explicit old and new versions');
 assert.match(macLocalUpdateSource, /DESKTOP_UPDATE_URL/, 'macOS local update rehearsal must embed a local update feed URL');
+assert.match(macLocalUpdateSource, /'mac-arm64' : 'mac', 'OpenCouncil\.app'/, 'macOS local update rehearsal must package the real .app bundle');
 assert.match(macLocalUpdateSource, /provider: 'generic'/, 'macOS local update rehearsal must use the generic update provider');
 assert.match(macLocalUpdateSource, /app-update\.yml/, 'macOS local update rehearsal must package updater provider config into the app');
 assert.match(macLocalUpdateSource, /extraResources/, 'macOS local update rehearsal must inject updater config before signing');

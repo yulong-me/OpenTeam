@@ -43,9 +43,9 @@ function electronBuilder(args) {
 }
 
 function macAppDir() {
-  const dir = resolve(outputDir, process.arch === 'arm64' ? 'mac-arm64' : 'mac');
+  const dir = resolve(outputDir, process.arch === 'arm64' ? 'mac-arm64' : 'mac', 'OpenCouncil.app');
   if (!existsSync(dir)) {
-    throw new Error(`Expected packaged app directory to exist: ${dir}`);
+    throw new Error(`Expected packaged app bundle to exist: ${dir}`);
   }
   return dir;
 }
@@ -77,7 +77,7 @@ function buildUpdaterZip(appDir) {
     '-k',
     '--sequesterRsrc',
     '--keepParent',
-    resolve(appDir, 'OpenCouncil.app'),
+    appDir,
     zipPath,
   ]);
 

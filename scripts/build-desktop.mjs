@@ -47,9 +47,9 @@ function preflight(publish) {
 }
 
 function macAppDir() {
-  const dir = resolve(root, 'release', process.arch === 'arm64' ? 'mac-arm64' : 'mac');
+  const dir = resolve(root, 'release', process.arch === 'arm64' ? 'mac-arm64' : 'mac', 'OpenCouncil.app');
   if (!existsSync(dir)) {
-    throw new Error(`Expected packaged app directory to exist: ${dir}`);
+    throw new Error(`Expected packaged app bundle to exist: ${dir}`);
   }
   return dir;
 }

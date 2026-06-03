@@ -188,6 +188,7 @@ assert.match(verifyInstallabilitySource, /spctl/, 'macOS installability verifier
 assert.match(configureSigningSource, /MAC_CSC_LINK/, 'macOS signing setup must set the certificate secret');
 assert.match(configureSigningSource, /APPLE_APP_SPECIFIC_PASSWORD/, 'macOS signing setup must set notarization credentials');
 assert.match(configureSigningSource, /Developer ID Application/, 'macOS signing setup must require the right Apple certificate type');
+assert.match(configureSigningSource, /'-legacy'/, 'macOS signing setup must export a Keychain-compatible legacy p12');
 assert.match(configureSigningSource, /gh', \['secret', 'set'/, 'macOS signing setup must write GitHub Actions secrets');
 
 assert.match(releaseWorkflow, /name: Desktop Release/, 'release workflow must exist');

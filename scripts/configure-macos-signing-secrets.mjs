@@ -74,6 +74,7 @@ if (!/^[A-Z0-9]{10}$/.test(teamId)) {
 
 run('openssl', [
   'pkcs12',
+  '-legacy',
   '-export',
   '-inkey',
   keyPath,
@@ -210,7 +211,7 @@ async function readValue(rl, label, envName) {
 
 async function readSecret(rl, label, envName) {
   const fromEnv = process.env[envName];
-  if (fromEnv) return fromEnv;
+  if (fromEnv) return fromEnv.trim();
 
   process.stdout.write(`${label}: `);
   spawnSync('stty', ['-echo'], { stdio: ['inherit', 'inherit', 'inherit'] });
@@ -218,7 +219,7 @@ async function readSecret(rl, label, envName) {
     const answer = await rl.question('');
     process.stdout.write('\n');
     if (!answer) fail(`${envName} is required.`);
-    return answer;
+    return answer.trim();
   } finally {
     spawnSync('stty', ['echo'], { stdio: ['inherit', 'inherit', 'inherit'] });
   }

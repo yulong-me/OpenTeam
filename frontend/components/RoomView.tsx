@@ -28,8 +28,8 @@ const API = API_URL
 const TASK_PANEL_DEFAULT_WIDTH = 280
 const TASK_PANEL_MIN_WIDTH = 240
 const TASK_PANEL_MAX_WIDTH = 400
-const TASK_PANEL_WIDTH_KEY = 'opencouncil.task-panel-width'
-const TASK_PANEL_COLLAPSED_KEY = 'opencouncil.task-panel-collapsed'
+const TASK_PANEL_WIDTH_KEY = 'openteam.task-panel-width'
+const TASK_PANEL_COLLAPSED_KEY = 'openteam.task-panel-collapsed'
 
 interface RoomViewProps {
   roomId?: string
@@ -59,8 +59,8 @@ interface CreatedRoomResponse {
 const AGENT_PANEL_DEFAULT_WIDTH = 308
 const AGENT_PANEL_MIN_WIDTH = 280
 const AGENT_PANEL_MAX_WIDTH = 360
-const AGENT_PANEL_WIDTH_KEY = 'opencouncil.agent-panel-width'
-const AGENT_PANEL_COLLAPSED_KEY = 'opencouncil.agent-panel-collapsed'
+const AGENT_PANEL_WIDTH_KEY = 'openteam.agent-panel-width'
+const AGENT_PANEL_COLLAPSED_KEY = 'openteam.agent-panel-collapsed'
 
 function clampTaskPanelWidth(width: number) {
   return Math.min(TASK_PANEL_MAX_WIDTH, Math.max(TASK_PANEL_MIN_WIDTH, Math.round(width)))

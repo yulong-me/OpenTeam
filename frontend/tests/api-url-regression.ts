@@ -53,6 +53,9 @@ assert.equal(resolveDefaultApiUrl(), 'http://localhost:7001')
 setWindowUrl('http://localhost:7000/')
 assert.equal(resolveDefaultApiUrl(), 'http://localhost:7000')
 
+setWindowUrl('http://127.0.0.1:7002/?openteamApi=openteam-api%3A%2F%2Flocal')
+assert.equal(resolveDefaultApiUrl(), 'openteam-api://local')
+
 setNodeEnv('production')
 
 setWindowUrl('http://localhost:7002/')

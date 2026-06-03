@@ -9,7 +9,7 @@ const roomHeader = readFileSync(resolve(root, 'components/room-view/RoomHeader.t
 const roomView = readFileSync(resolve(root, 'components/RoomView.tsx'), 'utf8')
 
 assert.match(roomHeader, /onOpenSystemSettings/)
-assert.match(roomHeader, /!roomId \? 'OpenCouncil'/)
+assert.match(roomHeader, /!roomId \? 'OpenTeam'/)
 assert.match(roomHeader, /aria-label="打开设置"/)
 assert.match(roomView, /onOpenSystemSettings=\{openSystemSettings\}/)
 

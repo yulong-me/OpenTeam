@@ -153,7 +153,7 @@ export function RoomHeader({
     }
   }
 
-  const headerTitle = !roomId ? 'OpenCouncil' : (currentRoomTopic || '新任务记录')
+  const headerTitle = !roomId ? 'OpenTeam' : (currentRoomTopic || '新任务记录')
   const taskActionButtonClassName = 'inline-flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md bg-surface px-2.5 text-[12px] font-semibold text-ink-soft shadow-sm transition-colors hover:bg-surface-muted hover:text-accent disabled:cursor-not-allowed disabled:opacity-60'
   const mobileTaskButtonClassName = 'inline-flex h-9 w-9 items-center justify-center rounded-lg border border-line bg-surface text-ink-soft transition-colors hover:bg-surface-muted hover:text-accent disabled:cursor-not-allowed disabled:opacity-60'
   const layoutPanelButtonClassName = (active: boolean, display = 'inline-flex') =>

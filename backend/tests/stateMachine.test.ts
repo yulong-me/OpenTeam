@@ -885,7 +885,7 @@ describe('F004: 直接路由', () => {
 
       let roomState = {
         id: 'room-visible-handoff-complete',
-        topic: 'OpenCouncil homepage copy',
+        topic: 'OpenTeam homepage copy',
         state: 'RUNNING' as const,
         agents: [
           { id: 'planner-1', role: 'WORKER' as const, name: 'Homepage Copy Planner', domainLabel: 'Copy plan', configId: 'planner-config', status: 'idle' as const },

@@ -1,6 +1,6 @@
 {
-  "name": "opencouncil-backend",
-  "version": "0.1.0",
+  "name": "openteam-backend",
+  "version": "0.1.2",
   "type": "module",
   "scripts": {
     "node:check": "node ../scripts/check-node-version.mjs",

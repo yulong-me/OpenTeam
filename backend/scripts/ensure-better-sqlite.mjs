@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { spawnSync } from 'node:child_process';
+import { rmSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -22,6 +23,10 @@ function loadBetterSqliteModule() {
   return require('better-sqlite3');
 }
 
+function betterSqlitePackageDir() {
+  return path.dirname(require.resolve('better-sqlite3/package.json'));
+}
+
 export function verifyBetterSqliteBinding(loadBetterSqlite = loadBetterSqliteModule) {
   const Database = loadBetterSqlite();
   const db = new Database(':memory:');
@@ -29,6 +34,8 @@ export function verifyBetterSqliteBinding(loadBetterSqlite = loadBetterSqliteMod
 }
 
 export function rebuildBetterSqlite() {
+  rmSync(path.join(betterSqlitePackageDir(), 'build'), { recursive: true, force: true });
+
   const pnpmCmd = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
   const result = spawnSync(pnpmCmd, ['rebuild', 'better-sqlite3'], {
     cwd: backendDir,

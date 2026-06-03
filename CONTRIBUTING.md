@@ -1,6 +1,6 @@
-# Contributing to OpenCouncil
+# Contributing to OpenTeam
 
-OpenCouncil is a local-first workspace for creating, running, and evolving reusable AI teams. Contributions are welcome when they keep that product path clear: goal -> Team -> run record -> reviewed Team improvement.
+OpenTeam is a local-first workspace for creating, running, and evolving reusable AI teams. Contributions are welcome when they keep that product path clear: goal -> Team -> run record -> reviewed Team improvement.
 
 ## Good First Issues
 

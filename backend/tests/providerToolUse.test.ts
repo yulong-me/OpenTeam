@@ -173,7 +173,7 @@ describe('provider tool_use parsing', () => {
 
   it('builds Codex launch config with json output and provider runtime workspace', () => {
     const workspace = '/Users/yulong/work/sample-project';
-    const providerRuntimeDir = '/tmp/opencouncil/provider-runtime/room-1/codex';
+    const providerRuntimeDir = '/tmp/openteam/provider-runtime/room-1/codex';
     const launch = buildCodexProviderLaunch(
       'hello from codex',
       { workspace, providerRuntimeDir, model: 'gpt-5.2', thinking: true },

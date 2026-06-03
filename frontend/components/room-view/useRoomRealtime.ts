@@ -11,6 +11,7 @@ import { mergeSessionTelemetryMaps } from '@/lib/telemetry'
 import type { AgentRunErrorEvent } from '../ErrorBubble'
 
 const API = API_URL
+const USE_SOCKET_REALTIME = !API.startsWith('openteam-api://')
 
 interface UseRoomRealtimeOptions {
   roomId?: string
@@ -125,6 +126,8 @@ export function useRoomRealtime({ roomId, queuedDispatchPendingRef }: UseRoomRea
   }, [roomId])
 
   useEffect(() => {
+    if (!USE_SOCKET_REALTIME) return
+
     const socket = io(`${API}`, { transports: ['websocket', 'polling'] })
     socketRef.current = socket
 

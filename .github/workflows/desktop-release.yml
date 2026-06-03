@@ -1,0 +1,115 @@
+name: Desktop Release
+
+on:
+  push:
+    branches:
+      - codex/desktop-app
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "Publish artifacts to GitHub Releases"
+        required: true
+        default: "never"
+        type: choice
+        options:
+          - never
+          - always
+
+permissions:
+  contents: write
+
+concurrency:
+  group: desktop-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  macos:
+    name: macOS
+    runs-on: macos-latest
+    timeout-minutes: 60
+
+    env:
+      CI: true
+      NEXT_TELEMETRY_DISABLED: 1
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.32.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.1
+          cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            backend/pnpm-lock.yaml
+            frontend/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install:all --frozen-lockfile
+
+      - name: Test desktop release contract
+        run: pnpm run test:desktop-launcher
+
+      - name: Release preflight
+        run: pnpm run desktop:preflight
+        env:
+          DESKTOP_PUBLISH_MODE: ${{ (github.ref_type == 'tag' || inputs.publish == 'always') && 'always' || 'never' }}
+          DESKTOP_TARGET_PLATFORM: darwin
+          CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
+      - name: Build and publish desktop artifacts
+        run: pnpm desktop:publish
+        if: github.ref_type == 'tag' || inputs.publish == 'always'
+        env:
+          CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
+      - name: Build desktop artifacts without publishing
+        run: pnpm desktop:dist:local
+        if: github.ref_type != 'tag' && inputs.publish != 'always'
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+
+      - name: Verify desktop artifacts
+        run: pnpm run desktop:verify-artifacts
+        env:
+          DESKTOP_PUBLISH_MODE: ${{ (github.ref_type == 'tag' || inputs.publish == 'always') && 'always' || 'never' }}
+          DESKTOP_TARGET_PLATFORM: darwin
+
+      - name: Verify macOS signing and notarization
+        run: pnpm run desktop:verify-signing
+        if: github.ref_type == 'tag' || inputs.publish == 'always'
+        env:
+          DESKTOP_PUBLISH_MODE: always
+          DESKTOP_TARGET_PLATFORM: darwin
+
+      - name: Verify macOS dmg installability
+        run: pnpm run desktop:verify-installability
+        if: github.ref_type == 'tag' || inputs.publish == 'always'
+        env:
+          DESKTOP_PUBLISH_MODE: always
+          DESKTOP_TARGET_PLATFORM: darwin
+
+      - name: Upload local artifacts
+        uses: actions/upload-artifact@v4
+        if: github.ref_type != 'tag' && inputs.publish != 'always'
+        with:
+          name: desktop-macos
+          path: release/OpenTeam-*-arm64.dmg

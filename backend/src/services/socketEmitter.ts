@@ -3,15 +3,31 @@
  * Imported by stateMachine to emit streaming events to frontend.
  * Must be initialized by server.ts at startup.
  */
-import type { Server as SocketIOServer } from 'socket.io';
 import type { AgentRunError, ContextHealth, InvocationUsage } from '../types.js';
 import { debug, error, info } from '../lib/logger.js';
 
-let _io: SocketIOServer | null = null;
+type RoomEmitter = {
+  emit(event: string, payload: unknown): void;
+};
 
-export function initSocketEmitter(io: SocketIOServer) {
+type SocketEmitter = {
+  to(roomId: string): RoomEmitter;
+};
+
+let _io: SocketEmitter | null = null;
+
+export function initSocketEmitter(io: SocketEmitter) {
   _io = io;
   info('socket:emitter:init');
+}
+
+export function initNoopSocketEmitter() {
+  _io = {
+    to: () => ({
+      emit: () => undefined,
+    }),
+  };
+  info('socket:emitter:init_noop');
 }
 
 function getIO() {

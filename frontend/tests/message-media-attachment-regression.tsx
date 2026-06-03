@@ -18,8 +18,8 @@ const message: Message = {
   agentName: agent.name,
   content: [
     '最终交付：',
-    '视频路径 /Users/yulong/work/OpenCouncil/backend/workspaces/room-1/final.mp4',
-    '音频路径 `/Users/yulong/work/OpenCouncil/backend/workspaces/room-1/voice over.m4a`',
+    '视频路径 /Users/yulong/work/OpenTeam/backend/workspaces/room-1/final.mp4',
+    '音频路径 `/Users/yulong/work/OpenTeam/backend/workspaces/room-1/voice over.m4a`',
   ].join('\n'),
   timestamp: new Date('2026-05-01T12:00:00+08:00').getTime(),
   type: 'assistant',
@@ -51,6 +51,6 @@ assert.match(markup, /<video[^>]+controls/)
 assert.match(markup, /<audio[^>]+controls/)
 assert.match(markup, /视频文件 · final\.mp4/)
 assert.match(markup, /音频文件 · voice over\.m4a/)
-assert.match(markup, /\/api\/browse\/media\?path=%2FUsers%2Fyulong%2Fwork%2FOpenCouncil/)
+assert.match(markup, /\/api\/browse\/media\?path=%2FUsers%2Fyulong%2Fwork%2FOpenTeam/)
 
 console.log('message-media-attachment-regression: ok')

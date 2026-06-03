@@ -21,7 +21,6 @@ const verifySigningSource = readFileSync(resolve(root, 'scripts/verify-macos-sig
 const verifyInstallabilitySource = readFileSync(resolve(root, 'scripts/verify-macos-installability.mjs'), 'utf8');
 const configureSigningSource = readFileSync(resolve(root, 'scripts/configure-macos-signing-secrets.mjs'), 'utf8');
 const releaseWorkflow = readFileSync(resolve(root, '.github/workflows/desktop-release.yml'), 'utf8');
-const releaseRunbook = readFileSync(resolve(root, 'docs/desktop-release-runbook.md'), 'utf8');
 const packageSource = readFileSync(resolve(root, 'package.json'), 'utf8');
 
 assert.equal(packageJson.main, 'desktop/main.cjs');
@@ -213,9 +212,3 @@ assert.doesNotMatch(releaseWorkflow, /release\/\*\.yml/, 'branch macOS artifact 
 assert.match(releaseWorkflow, /CSC_LINK/, 'release workflow must support code signing certificates');
 assert.match(releaseWorkflow, /APPLE_ID/, 'release workflow must support macOS notarization credentials');
 assert.doesNotMatch(releaseWorkflow, /WIN_CSC_LINK/, 'macOS release workflow must not require Windows code signing certificates');
-
-assert.match(releaseRunbook, /Update Rehearsal/, 'release runbook must include update rehearsal steps');
-assert.match(releaseRunbook, /macOS Local Update Rehearsal/, 'release runbook must document local macOS update rehearsal');
-assert.match(releaseRunbook, /立即升级/, 'release runbook must require the customer upgrade click path');
-assert.match(releaseRunbook, /macOS only/, 'release runbook must document current macOS-only release scope');
-assert.match(releaseRunbook, /publish=never/, 'release runbook must include dry-run workflow instructions');

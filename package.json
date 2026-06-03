@@ -2,7 +2,7 @@
   "name": "openteam",
   "private": true,
   "version": "0.1.2",
-  "description": "Custom agent councils for real work.",
+  "description": "Local-first AI work teams for real projects.",
   "author": "Yulong",
   "main": "desktop/main.cjs",
   "packageManager": "pnpm@10.32.1",

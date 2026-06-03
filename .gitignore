@@ -15,6 +15,18 @@ release/
 .env.local
 .env.*.local
 
+# Signing and credentials
+*.p12
+*.pfx
+*.pem
+*.key
+*.cer
+*.crt
+*.csr
+*.certSigningRequest
+*.mobileprovision
+*.provisionprofile
+
 # Logs
 *.log
 npm-debug.log*

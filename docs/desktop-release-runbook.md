@@ -26,6 +26,14 @@ macOS:
 - `APPLE_APP_SPECIFIC_PASSWORD`
 - `APPLE_TEAM_ID`
 
+After downloading the Apple `Developer ID Application` certificate, the local
+helper can build the p12 and set those secrets:
+
+```bash
+pnpm run desktop:configure-mac-signing -- \
+  --certificate ~/Downloads/developerID_application.cer
+```
+
 Setup details: [`docs/macos-signing-setup.md`](macos-signing-setup.md).
 
 ## Dry-Run Gate
@@ -41,6 +49,7 @@ Required evidence:
 
 - macOS job passes `desktop:preflight`
 - macOS job passes `desktop:verify-artifacts`
+- macOS job passes `desktop:verify-signing`
 - workflow uploads `desktop-macos` with only `OpenTeam-<version>-<arch>.dmg`
 
 Dry-run branch artifacts are for packaging verification. Because they are not

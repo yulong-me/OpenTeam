@@ -28,6 +28,8 @@
     "desktop:prepare-frontend-standalone": "node scripts/prepare-frontend-standalone.mjs",
     "desktop:rebuild-native": "node scripts/rebuild-desktop-native.mjs",
     "desktop:verify-artifacts": "node scripts/verify-desktop-artifacts.mjs",
+    "desktop:verify-signing": "node scripts/verify-macos-signing.mjs",
+    "desktop:configure-mac-signing": "node scripts/configure-macos-signing-secrets.mjs",
     "desktop:dev": "pnpm build && pnpm run desktop:rebuild-native && electron desktop/main.cjs",
     "desktop:pack": "node scripts/build-desktop.mjs pack",
     "desktop:dist": "node scripts/build-desktop.mjs dist-local",

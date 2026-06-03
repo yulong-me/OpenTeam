@@ -20,6 +20,23 @@ Gatekeeper. Customer builds require Developer ID signing and Apple notarization.
 
 ## Export The Signing Certificate
 
+If you use the repo helper flow, the CSR is generated at:
+
+```bash
+mkdir -p ~/.openteam-signing
+chmod 700 ~/.openteam-signing
+openssl genrsa -out ~/.openteam-signing/openteam-developer-id.key 2048
+chmod 600 ~/.openteam-signing/openteam-developer-id.key
+openssl req -new \
+  -key ~/.openteam-signing/openteam-developer-id.key \
+  -out ~/.openteam-signing/openteam-developer-id.certSigningRequest \
+  -subj "/emailAddress=YOUR_APPLE_ID_EMAIL,CN=OpenTeam Developer ID,C=CN"
+```
+
+Upload `~/.openteam-signing/openteam-developer-id.certSigningRequest` when
+Apple asks for a certificate request file. Download the resulting
+`Developer ID Application` certificate to `~/Downloads/developerID_application.cer`.
+
 On the Mac where the `Developer ID Application` certificate is installed:
 
 1. Open Keychain Access.
@@ -33,6 +50,14 @@ Convert the p12 file to a GitHub secret value:
 
 ```bash
 base64 -i mac-codesign.p12 | pbcopy
+```
+
+Or use the helper script to convert the downloaded `.cer`, build the p12, and
+set all GitHub Actions secrets without printing secret values:
+
+```bash
+pnpm run desktop:configure-mac-signing -- \
+  --certificate ~/Downloads/developerID_application.cer
 ```
 
 ## Configure GitHub Secrets
@@ -85,6 +110,7 @@ The signed release is not complete until the workflow proves all of this:
 - Apple notarization succeeds.
 - macOS `dmg`, updater `zip`, and `latest-mac.yml` are published to the GitHub Release.
 - `desktop:verify-artifacts` passes in publish mode and finds `app-update.yml`.
+- `desktop:verify-signing` passes `codesign`, `stapler`, `spctl`, and `hdiutil verify`.
 - A downloaded release dmg opens without removing quarantine attributes.
 
 ## Why Dry-Run Builds Fail For Customers

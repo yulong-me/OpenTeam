@@ -93,6 +93,13 @@ jobs:
           DESKTOP_PUBLISH_MODE: ${{ (github.ref_type == 'tag' || inputs.publish == 'always') && 'always' || 'never' }}
           DESKTOP_TARGET_PLATFORM: darwin
 
+      - name: Verify macOS signing and notarization
+        run: pnpm run desktop:verify-signing
+        if: github.ref_type == 'tag' || inputs.publish == 'always'
+        env:
+          DESKTOP_PUBLISH_MODE: always
+          DESKTOP_TARGET_PLATFORM: darwin
+
       - name: Upload local artifacts
         uses: actions/upload-artifact@v4
         if: github.ref_type != 'tag' && inputs.publish != 'always'

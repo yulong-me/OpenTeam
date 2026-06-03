@@ -1,6 +1,6 @@
 {
   "name": "openteam-backend",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "scripts": {
     "node:check": "node ../scripts/check-node-version.mjs",

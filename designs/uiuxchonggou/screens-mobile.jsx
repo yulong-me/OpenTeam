@@ -1,6 +1,6 @@
-// OpenCouncil — Mobile artboards (375 × 812)
+// OpenTeam — Mobile artboards (375 × 812)
 
-function PhoneFrame({ title = 'opencouncil', children, dim = false }) {
+function PhoneFrame({ title = 'openteam', children, dim = false }) {
   return (
     <div style={{
       width: 380, height: 800,

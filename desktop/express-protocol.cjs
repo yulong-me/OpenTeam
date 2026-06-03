@@ -178,7 +178,7 @@ function createProtocolResponse(resolve, req) {
 }
 
 function createErrorResponse(error) {
-  return new Response(`OpenCouncil backend unavailable: ${error.message}`, {
+  return new Response(`OpenTeam backend unavailable: ${error.message}`, {
     status: 502,
     headers: { 'content-type': 'text/plain; charset=utf-8' },
   });

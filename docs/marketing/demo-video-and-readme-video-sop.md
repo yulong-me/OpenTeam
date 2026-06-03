@@ -7,7 +7,7 @@ created: 2026-04-24
 
 # Demo Video and README Video SOP
 
-This is the lightweight workflow used for the OpenCouncil short product demo.
+This is the lightweight workflow used for the OpenTeam short product demo.
 
 ## Goal
 
@@ -34,7 +34,7 @@ Recommended sequence:
    - "一个 agent 实现总是差一点。"
    - "这个 agent 说得对吗？最好有另一个 agent 校验。"
    - "我希望多个 agent 帮我做调研、质疑、收敛，并能继续推进到执行。"
-2. Show OpenCouncil:
+2. Show OpenTeam:
    - Create or select a custom Team.
    - Put multiple specialized Agents into the room.
    - Send a concrete request.
@@ -56,7 +56,7 @@ mkdir -p .remotion
 printf "\\n# Local Remotion video workspace\\n.remotion/\\n" >> .git/info/exclude
 ```
 
-Use Remotion for a controlled product demo when a real screen recording is too slow or hard to frame. The UI can be recreated in React, but it should match the actual OpenCouncil interface closely enough that it does not misrepresent the product.
+Use Remotion for a controlled product demo when a real screen recording is too slow or hard to frame. The UI can be recreated in React, but it should match the actual OpenTeam interface closely enough that it does not misrepresent the product.
 
 Common commands:
 
@@ -68,12 +68,12 @@ pnpm render
 pnpm still
 ```
 
-For this repo, Remotion Studio should use port `7003` so it does not collide with OpenCouncil frontend `7002` or API `7001`.
+For this repo, Remotion Studio should use port `7003` so it does not collide with OpenTeam frontend `7002` or API `7001`.
 
 Expected local outputs:
 
 ```text
-.remotion/out/opencouncil-product-demo.mp4
+.remotion/out/openteam-product-demo.mp4
 .remotion/out/poster.png
 ```
 
@@ -97,7 +97,7 @@ ffprobe -v error -select_streams v:0 \
   -show_entries stream=codec_name,width,height,r_frame_rate \
   -show_entries format=duration,size \
   -of default=noprint_wrappers=1 \
-  .remotion/out/opencouncil-product-demo.mp4
+  .remotion/out/openteam-product-demo.mp4
 ```
 
 ## Upload Options
@@ -111,13 +111,13 @@ Good for stable downloads and poster images.
 Example:
 
 ```text
-https://github.com/yulong-me/OpenCouncil/releases/download/demo-assets-2026-04-24/opencouncil-product-demo.mp4
+https://github.com/yulong-me/OpenTeam/releases/download/demo-assets-2026-04-24/openteam-product-demo.mp4
 ```
 
 Latest demo asset:
 
 ```text
-https://github.com/yulong-me/OpenCouncil/releases/download/demo-assets-2026-05-06/opencouncil-product-demo.mp4
+https://github.com/yulong-me/OpenTeam/releases/download/demo-assets-2026-05-06/openteam-product-demo.mp4
 ```
 
 Tradeoff: a naked Release `.mp4` URL usually renders as a normal link in README, not an inline video player.
@@ -139,7 +139,7 @@ https://github.com/user-attachments/assets/<asset-id>
 
 The comment does not need to be submitted after the URL is generated. Clear the draft comment if it was only used as an upload surface.
 
-For the current OpenCouncil demo:
+For the current OpenTeam demo:
 
 ```text
 https://github.com/user-attachments/assets/930440d8-4971-4e92-8d35-a903b6d729b3
@@ -180,7 +180,7 @@ Use the GitHub Markdown API before merging:
 ```bash
 gh api /markdown \
   -f mode=gfm \
-  -f context=yulong-me/OpenCouncil \
+  -f context=yulong-me/OpenTeam \
   -f text=$'https://github.com/user-attachments/assets/930440d8-4971-4e92-8d35-a903b6d729b3' \
   | rg '<video|user-attachments|details'
 ```
@@ -191,11 +191,11 @@ You can also validate the exact remote branch README:
 
 ```bash
 remote_readme=$(gh api -H 'Accept: application/vnd.github.raw' \
-  '/repos/yulong-me/OpenCouncil/contents/README.md?ref=codex/readme-demo-video-test')
+  '/repos/yulong-me/OpenTeam/contents/README.md?ref=codex/readme-demo-video-test')
 
 gh api /markdown \
   -f mode=gfm \
-  -f context=yulong-me/OpenCouncil \
+  -f context=yulong-me/OpenTeam \
   -f text="$remote_readme" \
   | rg '<video|user-attachments|details'
 ```

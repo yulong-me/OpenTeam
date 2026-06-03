@@ -12,7 +12,7 @@ created: 2026-04-21
 
 ## Why
 
-OpenCouncil 现在对长对话的处理还不稳定：
+OpenTeam 现在对长对话的处理还不稳定：
 
 1. 运行时显式注入的历史主要还是“最近几条消息”，缺少真正的长程记忆装配。
 2. Claude / OpenCode 的 `sessionId` 会持续续接，但应用层并不知道 provider 内部何时压缩、何时接近窗口上限。

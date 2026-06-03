@@ -41,9 +41,9 @@ created: 2026-04-20
 
 这是当前最值得先修的 IA 问题。
 
-- [frontend/app/page.tsx](/Users/yulong/work/OpenCouncil/frontend/app/page.tsx:5) 直接渲染 `<RoomView />`
-- [frontend/components/RoomView_new.tsx](/Users/yulong/work/OpenCouncil/frontend/components/RoomView_new.tsx:1060) 只有 `roomId` 存在时才渲染 `RoomComposer`
-- [frontend/components/MessageList.tsx](/Users/yulong/work/OpenCouncil/frontend/components/MessageList.tsx:143) 空态只在 `messages.length === 0 && roomId` 时显示
+- [frontend/app/page.tsx](/Users/yulong/work/OpenTeam/frontend/app/page.tsx:5) 直接渲染 `<RoomView />`
+- [frontend/components/RoomView_new.tsx](/Users/yulong/work/OpenTeam/frontend/components/RoomView_new.tsx:1060) 只有 `roomId` 存在时才渲染 `RoomComposer`
+- [frontend/components/MessageList.tsx](/Users/yulong/work/OpenTeam/frontend/components/MessageList.tsx:143) 空态只在 `messages.length === 0 && roomId` 时显示
 
 结果是：未选房间时，中栏只有一个空消息区，右栏仍保留，用户没有“下一步该做什么”的界面提示。
 
@@ -53,9 +53,9 @@ created: 2026-04-20
 
 这个判断成立，而且是结构性问题。
 
-- [frontend/components/SettingsPageClient.tsx](/Users/yulong/work/OpenCouncil/frontend/components/SettingsPageClient.tsx:17) 把路由页直接渲染为 `SettingsModal`
-- [frontend/components/SettingsModal.tsx](/Users/yulong/work/OpenCouncil/frontend/components/SettingsModal.tsx:663) 仍然是带全屏 backdrop 的右侧抽屉
-- [frontend/app/settings/layout.tsx](/Users/yulong/work/OpenCouncil/frontend/app/settings/layout.tsx:13) 同时又定义了一套 page layout
+- [frontend/components/SettingsPageClient.tsx](/Users/yulong/work/OpenTeam/frontend/components/SettingsPageClient.tsx:17) 把路由页直接渲染为 `SettingsModal`
+- [frontend/components/SettingsModal.tsx](/Users/yulong/work/OpenTeam/frontend/components/SettingsModal.tsx:663) 仍然是带全屏 backdrop 的右侧抽屉
+- [frontend/app/settings/layout.tsx](/Users/yulong/work/OpenTeam/frontend/app/settings/layout.tsx:13) 同时又定义了一套 page layout
 
 结果是：系统里同时存在“设置是页面”和“设置是抽屉”两种模型，但 route 入口实际走的是抽屉实现，导致宽屏下左半屏只是灰幕，不是信息空间。
 
@@ -65,12 +65,12 @@ created: 2026-04-20
 
 目前多个窗口各自实现关闭、焦点和表单语义：
 
-- [frontend/components/SettingsModal.tsx](/Users/yulong/work/OpenCouncil/frontend/components/SettingsModal.tsx:571) 只有 `Escape` 关闭，没有 focus trap / focus restore
-- [frontend/components/CreateRoomModal.tsx](/Users/yulong/work/OpenCouncil/frontend/components/CreateRoomModal.tsx:133) 同样只有 `Escape` 关闭
-- [frontend/components/DirectoryBrowser.tsx](/Users/yulong/work/OpenCouncil/frontend/components/DirectoryBrowser.tsx:147) 也是独立的 `Escape` 监听
-- [frontend/components/RoomComposer.tsx](/Users/yulong/work/OpenCouncil/frontend/components/RoomComposer.tsx:286) 输入框只有 `aria-label`，没有 `name` / `autocomplete`
-- [frontend/components/CreateRoomModal.tsx](/Users/yulong/work/OpenCouncil/frontend/components/CreateRoomModal.tsx:247) topic 输入没有显式 `label`
-- [frontend/components/SettingsModal.tsx](/Users/yulong/work/OpenCouncil/frontend/components/SettingsModal.tsx:149) Agent 编辑表单多数字段没有 `id/htmlFor/name/autocomplete`
+- [frontend/components/SettingsModal.tsx](/Users/yulong/work/OpenTeam/frontend/components/SettingsModal.tsx:571) 只有 `Escape` 关闭，没有 focus trap / focus restore
+- [frontend/components/CreateRoomModal.tsx](/Users/yulong/work/OpenTeam/frontend/components/CreateRoomModal.tsx:133) 同样只有 `Escape` 关闭
+- [frontend/components/DirectoryBrowser.tsx](/Users/yulong/work/OpenTeam/frontend/components/DirectoryBrowser.tsx:147) 也是独立的 `Escape` 监听
+- [frontend/components/RoomComposer.tsx](/Users/yulong/work/OpenTeam/frontend/components/RoomComposer.tsx:286) 输入框只有 `aria-label`，没有 `name` / `autocomplete`
+- [frontend/components/CreateRoomModal.tsx](/Users/yulong/work/OpenTeam/frontend/components/CreateRoomModal.tsx:247) topic 输入没有显式 `label`
+- [frontend/components/SettingsModal.tsx](/Users/yulong/work/OpenTeam/frontend/components/SettingsModal.tsx:149) Agent 编辑表单多数字段没有 `id/htmlFor/name/autocomplete`
 
 按 Web Interface Guidelines，这已经不是“某几个字段没补齐”，而是缺少共享 primitive，导致规则只能靠每个组件自行记忆。
 
@@ -78,7 +78,7 @@ created: 2026-04-20
 
 这条需要更精确表述：问题在“语义结构”，不在“移动端无法删除”。
 
-- [frontend/components/RoomListSidebar.tsx](/Users/yulong/work/OpenCouncil/frontend/components/RoomListSidebar.tsx:100) 仍使用 `div role="button"` 作为整卡交互根
+- [frontend/components/RoomListSidebar.tsx](/Users/yulong/work/OpenTeam/frontend/components/RoomListSidebar.tsx:100) 仍使用 `div role="button"` 作为整卡交互根
 - 同一卡片内部又包含独立删除按钮和 workspace 按钮，形成复合交互区
 - Vercel 的 guideline 明确建议：导航用 `a/Link`，操作用 `button`，避免 `div` + click handler 充当主交互元素
 
@@ -88,10 +88,10 @@ created: 2026-04-20
 
 这条是设计判断，但有明确代码和截图证据支撑。
 
-- [frontend/components/RoomView_new.tsx](/Users/yulong/work/OpenCouncil/frontend/components/RoomView_new.tsx:943) 中栏是唯一主任务区
-- [frontend/components/AgentPanel.tsx](/Users/yulong/work/OpenCouncil/frontend/components/AgentPanel.tsx:43) 右栏默认宽度 `320`
-- [frontend/components/AgentPanel.tsx](/Users/yulong/work/OpenCouncil/frontend/components/AgentPanel.tsx:135) 右栏的核心信息只有房间 ID、参与者计数和 workspace
-- [frontend/components/RoomView_new.tsx](/Users/yulong/work/OpenCouncil/frontend/components/RoomView_new.tsx:957) 顶部同时容纳 A2A 深度、移动端参与者入口、邀请专家、桌面收起按钮
+- [frontend/components/RoomView_new.tsx](/Users/yulong/work/OpenTeam/frontend/components/RoomView_new.tsx:943) 中栏是唯一主任务区
+- [frontend/components/AgentPanel.tsx](/Users/yulong/work/OpenTeam/frontend/components/AgentPanel.tsx:43) 右栏默认宽度 `320`
+- [frontend/components/AgentPanel.tsx](/Users/yulong/work/OpenTeam/frontend/components/AgentPanel.tsx:135) 右栏的核心信息只有房间 ID、参与者计数和 workspace
+- [frontend/components/RoomView_new.tsx](/Users/yulong/work/OpenTeam/frontend/components/RoomView_new.tsx:957) 顶部同时容纳 A2A 深度、移动端参与者入口、邀请专家、桌面收起按钮
 
 结论不是“右栏不该存在”，而是：
 
@@ -105,9 +105,9 @@ created: 2026-04-20
 
 现状与原审计结论不一致：
 
-- [frontend/components/CreateRoomModal.tsx](/Users/yulong/work/OpenCouncil/frontend/components/CreateRoomModal.tsx:247) 已提供 topic 输入
-- [frontend/components/CreateRoomModal.tsx](/Users/yulong/work/OpenCouncil/frontend/components/CreateRoomModal.tsx:173) 已在创建时提交用户 topic 或合理 fallback
-- [docs/features/F010-create-room-ux-improvements.md](/Users/yulong/work/OpenCouncil/docs/features/F010-create-room-ux-improvements.md:1) 和 [docs/features/F018-mainflow-prompt-ux.md](/Users/yulong/work/OpenCouncil/docs/features/F018-mainflow-prompt-ux.md:1) 也已记录该方向完成
+- [frontend/components/CreateRoomModal.tsx](/Users/yulong/work/OpenTeam/frontend/components/CreateRoomModal.tsx:247) 已提供 topic 输入
+- [frontend/components/CreateRoomModal.tsx](/Users/yulong/work/OpenTeam/frontend/components/CreateRoomModal.tsx:173) 已在创建时提交用户 topic 或合理 fallback
+- [docs/features/F010-create-room-ux-improvements.md](/Users/yulong/work/OpenTeam/docs/features/F010-create-room-ux-improvements.md:1) 和 [docs/features/F018-mainflow-prompt-ux.md](/Users/yulong/work/OpenTeam/docs/features/F018-mainflow-prompt-ux.md:1) 也已记录该方向完成
 
 因此不建议把这条继续列为本轮治理项。
 
@@ -115,7 +115,7 @@ created: 2026-04-20
 
 原表述已过时：
 
-- [frontend/components/RoomListSidebar.tsx](/Users/yulong/work/OpenCouncil/frontend/components/RoomListSidebar.tsx:143) 桌面删除按钮是 hover/focus-in 才显
+- [frontend/components/RoomListSidebar.tsx](/Users/yulong/work/OpenTeam/frontend/components/RoomListSidebar.tsx:143) 桌面删除按钮是 hover/focus-in 才显
 - 但移动端菜单中的删除按钮并未隐藏，因此“触屏不可发现”并不准确
 
 保留问题应改写为：

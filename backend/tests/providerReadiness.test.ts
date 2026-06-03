@@ -25,7 +25,7 @@ function provider(overrides: Partial<ProviderConfig>): ProviderConfig {
 }
 
 function executableFile(name: string): { dir: string; file: string } {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'opencouncil-provider-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'openteam-provider-'));
   tempDirs.push(dir);
   const file = path.join(dir, name);
   fs.writeFileSync(file, '#!/bin/sh\nexit 0\n');

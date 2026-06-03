@@ -43,11 +43,11 @@ afterEach(async () => {
 
 describe('skills service', () => {
   it('discovers workspace-local skills and keeps the nearest duplicate', async () => {
-    const home = await fs.mkdtemp(path.join(os.tmpdir(), 'opencouncil-home-empty-'));
+    const home = await fs.mkdtemp(path.join(os.tmpdir(), 'openteam-home-empty-'));
     cleanupDirs.push(home);
     process.env.HOME = home;
 
-    const repoRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'opencouncil-skills-'));
+    const repoRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'openteam-skills-'));
     cleanupDirs.push(repoRoot);
     execFileSync('git', ['init'], { cwd: repoRoot, stdio: 'ignore' });
 
@@ -71,8 +71,8 @@ describe('skills service', () => {
   });
 
   it('assembles provider runtime with workspace and skill symlinks', async () => {
-    const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'opencouncil-runtime-workspace-'));
-    const skillBundle = await fs.mkdtemp(path.join(os.tmpdir(), 'opencouncil-runtime-skill-'));
+    const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'openteam-runtime-workspace-'));
+    const skillBundle = await fs.mkdtemp(path.join(os.tmpdir(), 'openteam-runtime-skill-'));
     cleanupDirs.push(workspace, skillBundle);
     await fs.writeFile(path.join(skillBundle, 'SKILL.md'), '# test\n');
 
@@ -104,8 +104,8 @@ describe('skills service', () => {
   });
 
   it('exposes provider skills from the real workspace through a symlinked skills directory', async () => {
-    const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'opencouncil-runtime-workspace-'));
-    const skillBundle = await fs.mkdtemp(path.join(os.tmpdir(), 'opencouncil-runtime-skill-'));
+    const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'openteam-runtime-workspace-'));
+    const skillBundle = await fs.mkdtemp(path.join(os.tmpdir(), 'openteam-runtime-skill-'));
     cleanupDirs.push(workspace, skillBundle);
     await fs.writeFile(path.join(skillBundle, 'SKILL.md'), '# test\n');
 
@@ -136,8 +136,8 @@ describe('skills service', () => {
   });
 
   it('assembles Codex provider runtime under .codex/skills', async () => {
-    const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'opencouncil-runtime-workspace-'));
-    const skillBundle = await fs.mkdtemp(path.join(os.tmpdir(), 'opencouncil-runtime-skill-'));
+    const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'openteam-runtime-workspace-'));
+    const skillBundle = await fs.mkdtemp(path.join(os.tmpdir(), 'openteam-runtime-skill-'));
     cleanupDirs.push(workspace, skillBundle);
     await fs.writeFile(path.join(skillBundle, 'SKILL.md'), '# test\n');
 
@@ -169,7 +169,7 @@ describe('skills service', () => {
   });
 
   it('discovers system global skills from claude, opencode, and codex home directories', async () => {
-    const home = await fs.mkdtemp(path.join(os.tmpdir(), 'opencouncil-home-'));
+    const home = await fs.mkdtemp(path.join(os.tmpdir(), 'openteam-home-'));
     cleanupDirs.push(home);
     process.env.HOME = home;
 
@@ -189,8 +189,8 @@ describe('skills service', () => {
   });
 
   it('resolves explicitly selected scanned Team skills even when default discovery is disabled', async () => {
-    const home = await fs.mkdtemp(path.join(os.tmpdir(), 'opencouncil-home-'));
-    const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'opencouncil-workspace-'));
+    const home = await fs.mkdtemp(path.join(os.tmpdir(), 'openteam-home-'));
+    const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'openteam-workspace-'));
     cleanupDirs.push(home, workspace);
     process.env.HOME = home;
 
@@ -222,7 +222,7 @@ describe('skills service', () => {
   });
 
   it('imports a skill folder into managed skills', async () => {
-    const source = await fs.mkdtemp(path.join(os.tmpdir(), 'opencouncil-import-skill-'));
+    const source = await fs.mkdtemp(path.join(os.tmpdir(), 'openteam-import-skill-'));
     cleanupDirs.push(source);
     const skillName = `imported-skill-${randomUUID().slice(0, 8)}`;
     await writeSkill(source, skillName, 'import me');
@@ -240,7 +240,7 @@ describe('skills service', () => {
   });
 
   it('prunes stale managed skill records when their backing SKILL.md is gone', async () => {
-    const source = await fs.mkdtemp(path.join(os.tmpdir(), 'opencouncil-stale-skill-'));
+    const source = await fs.mkdtemp(path.join(os.tmpdir(), 'openteam-stale-skill-'));
     cleanupDirs.push(source);
     const skillName = `stale-skill-${randomUUID().slice(0, 8)}`;
     await writeSkill(source, skillName, 'temporary stale skill');

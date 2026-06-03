@@ -39,8 +39,8 @@ function requireUpdateMetadataAssets(metadataFile, label) {
 }
 
 if (platform === 'darwin') {
-  requirePattern(/^OpenCouncil-.+\.dmg$/, 'macOS dmg installer');
-  requirePattern(/^OpenCouncil-.+-mac\.zip$/, 'macOS zip updater artifact');
+  requirePattern(/^OpenTeam-.+\.dmg$/, 'macOS dmg installer');
+  requirePattern(/^OpenTeam-.+-mac\.zip$/, 'macOS zip updater artifact');
   requireFile(resolve(releaseDir, 'latest-mac.yml'), 'macOS update metadata');
   requireUpdateMetadataAssets('latest-mac.yml', 'macOS update metadata');
 
@@ -48,7 +48,7 @@ if (platform === 'darwin') {
     const appUpdatePath = resolve(
       releaseDir,
       process.arch === 'arm64' ? 'mac-arm64' : 'mac',
-      'OpenCouncil.app',
+      'OpenTeam.app',
       'Contents',
       'Resources',
       'app-update.yml',
@@ -56,7 +56,7 @@ if (platform === 'darwin') {
     requireFile(appUpdatePath, 'macOS app update provider config');
   }
 } else if (platform === 'win32') {
-  requirePattern(/^OpenCouncil .+\.exe$|^OpenCouncil-.+\.exe$/, 'Windows NSIS installer');
+  requirePattern(/^OpenTeam .+\.exe$|^OpenTeam-.+\.exe$/, 'Windows NSIS installer');
   requireFile(resolve(releaseDir, 'latest.yml'), 'Windows update metadata');
   requireUpdateMetadataAssets('latest.yml', 'Windows update metadata');
 

@@ -1,5 +1,5 @@
 {
-  "name": "opencouncil",
+  "name": "openteam",
   "private": true,
   "version": "0.1.0",
   "description": "Custom agent councils for real work.",
@@ -37,12 +37,12 @@
     "desktop:publish": "node scripts/build-desktop.mjs publish",
     "test:node-version": "node tests/check-node-version.test.mjs",
     "test:better-sqlite-native": "node tests/ensure-better-sqlite.test.mjs",
-    "test:desktop-launcher": "node tests/desktop-launcher.test.mjs && node tests/desktop-express-protocol.test.mjs",
+    "test:desktop-launcher": "node tests/desktop-launcher.test.mjs && node tests/desktop-express-protocol.test.mjs && node tests/project-rename.test.mjs",
     "install:all": "pnpm -r install"
   },
   "build": {
-    "appId": "me.yulong.opencouncil",
-    "productName": "OpenCouncil",
+    "appId": "me.yulong.openteam",
+    "productName": "OpenTeam",
     "compression": "normal",
     "directories": {
       "output": "release"
@@ -51,7 +51,7 @@
       {
         "provider": "github",
         "owner": "yulong-me",
-        "repo": "OpenCouncil"
+        "repo": "OpenTeam"
       }
     ],
     "generateUpdatesFilesForAllChannels": true,

@@ -25,7 +25,7 @@ function createMockExpressApp() {
 }
 
 const handler = createExpressProtocolHandler(createMockExpressApp());
-const response = await handler(new Request('opencouncil-api://local/api/echo?from=desktop', {
+const response = await handler(new Request('openteam-api://local/api/echo?from=desktop', {
   method: 'POST',
   headers: { 'content-type': 'application/json' },
   body: JSON.stringify({ ok: true }),

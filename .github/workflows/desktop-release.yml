@@ -98,4 +98,4 @@ jobs:
         if: github.ref_type != 'tag' && inputs.publish != 'always'
         with:
           name: desktop-macos
-          path: release/OpenCouncil-*-arm64.dmg
+          path: release/OpenTeam-*-arm64.dmg

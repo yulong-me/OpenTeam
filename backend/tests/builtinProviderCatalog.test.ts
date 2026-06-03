@@ -54,9 +54,9 @@ describe('builtin provider catalog backfill', () => {
   });
 
   it('runs during initDB even when bootstrap seed has already completed', async () => {
-    const runtimeRoot = mkdtempSync(path.join(tmpdir(), 'opencouncil-provider-backfill-'));
+    const runtimeRoot = mkdtempSync(path.join(tmpdir(), 'openteam-provider-backfill-'));
     vi.resetModules();
-    vi.stubEnv('OPENCOUNCIL_RUNTIME_ROOT', runtimeRoot);
+    vi.stubEnv('OPENTEAM_RUNTIME_ROOT', runtimeRoot);
 
     const { db } = await import('../src/db/db.js');
     const { initSchema } = await import('../src/db/migrate.js');

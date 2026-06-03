@@ -1,11 +1,11 @@
-// OpenCouncil — Desktop main-line artboards (1-7)
+// OpenTeam — Desktop main-line artboards (1-7)
 // Home empty / Command palette / Create-task modal (existing) / Create-task modal (generate) /
 // Room — empty messages / Room — active messages / Room — done state
 
 // 1. 首页 — 空态启动区 ----------------------------------------------------------
 function ScreenHome() {
   return (
-    <MacChrome title="opencouncil · 首页" w={1440} h={900}>
+    <MacChrome title="openteam · 首页" w={1440} h={900}>
       <LeftRail activeId={null} />
       <main style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
         <section style={{ flex: 1, padding: '54px 64px 40px', overflowY: 'hidden', position: 'relative' }}>
@@ -122,7 +122,7 @@ function ScreenHome() {
           </div>
           <div style={{ flex: 1 }} />
           <div style={{ fontSize: 11.5, color: ocColor('ink2'), lineHeight: 1.5 }}>
-            协作记录会落在 <span style={{ fontFamily: '"IBM Plex Mono", monospace' }}>~/.opencouncil/rooms</span>。任务结束后可以提改进，让 Team 升级。
+            协作记录会落在 <span style={{ fontFamily: '"IBM Plex Mono", monospace' }}>~/.openteam/rooms</span>。任务结束后可以提改进，让 Team 升级。
           </div>
         </aside>
       </main>
@@ -223,7 +223,7 @@ function NewTeamCard() {
 // 2. 命令面板 ------------------------------------------------------------------
 function ScreenCommandPalette() {
   return (
-    <MacChrome title="opencouncil · ⌘K" w={1440} h={900}>
+    <MacChrome title="openteam · ⌘K" w={1440} h={900}>
       <LeftRail activeId={null} />
       <main style={{ flex: 1, padding: '54px 64px', position: 'relative' }}>
         {/* dim背景 */}
@@ -325,7 +325,7 @@ function KbdHint({ k, children }) {
 // 3. 发起任务 — 选择已有 Team --------------------------------------------------
 function ScreenCreateTaskExisting() {
   return (
-    <MacChrome title="opencouncil · 发起任务" w={1440} h={900}>
+    <MacChrome title="openteam · 发起任务" w={1440} h={900}>
       <LeftRail activeId={null} />
       <main style={{ flex: 1, padding: '24px 40px', position: 'relative' }}>
         <div style={{ opacity: 0.4 }}>
@@ -491,7 +491,7 @@ function ToolStatusRow({ name, status, path }) {
 // 4. 发起任务 — 生成新 Team ----------------------------------------------------
 function ScreenCreateTaskGenerate() {
   return (
-    <MacChrome title="opencouncil · Team Architect" w={1440} h={900}>
+    <MacChrome title="openteam · Team Architect" w={1440} h={900}>
       <LeftRail activeId={null} />
       <main style={{ flex: 1, padding: '24px 40px', position: 'relative' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'rgba(20,15,8,0.16)' }} />

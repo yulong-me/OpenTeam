@@ -1,11 +1,11 @@
-// OpenCouncil — Improvement flow + Settings (Team / Provider / Skill)
+// OpenTeam — Improvement flow + Settings (Team / Provider / Skill)
 
 // ============================================================
 // 8. 改进反馈弹窗
 // ============================================================
 function ScreenImprovementFeedback() {
   return (
-    <MacChrome title="opencouncil · 提个改进" w={1440} h={900}>
+    <MacChrome title="openteam · 提个改进" w={1440} h={900}>
       <LeftRail activeId={1} />
       <main style={{ flex: 1, display: 'flex', minWidth: 0, position: 'relative' }}>
         <section style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
@@ -100,7 +100,7 @@ function ScreenImprovementFeedback() {
 // ============================================================
 function ScreenUpgradeConfirm() {
   return (
-    <MacChrome title="opencouncil · 查看改进建议" w={1440} h={900}>
+    <MacChrome title="openteam · 查看改进建议" w={1440} h={900}>
       <LeftRail activeId={1} />
       <main style={{ flex: 1, display: 'flex', minWidth: 0, position: 'relative' }}>
         <section style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
@@ -283,7 +283,7 @@ function BeforeAfter({ label, body, dim = false, accent = null }) {
 // ============================================================
 function SettingsChrome({ tab, children }) {
   return (
-    <MacChrome title={`opencouncil · 设置 · ${tab}`} w={1440} h={900}>
+    <MacChrome title={`openteam · 设置 · ${tab}`} w={1440} h={900}>
       <LeftRail activeId={null} collapsed />
       <main style={{ flex: 1, display: 'flex', minWidth: 0 }}>
         {/* settings inner sidebar */}

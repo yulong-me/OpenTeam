@@ -260,7 +260,7 @@ export function EmptyRoomQuickStart({
       <div className="flex min-w-0 flex-1 flex-col overflow-y-auto px-5 pt-5 pb-24 md:pb-0 md:px-10 md:pt-8 lg:px-14 lg:py-12">
         <div className="w-full max-w-6xl">
           <div className="max-w-3xl">
-            <p className="sr-only">OpenCouncil</p>
+            <p className="sr-only">OpenTeam</p>
             <p className="sr-only">发起一个任务，交给 Team 协作。</p>
             <p className="font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-ink-faint">
               主线 · 任务 → Team → 现场 → 记录 → 改进

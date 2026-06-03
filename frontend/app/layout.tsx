@@ -4,7 +4,7 @@ import 'react-diff-view/style/index.css'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'OpenCouncil',
+  title: 'OpenTeam',
   description: 'Multi-agent deliberation workspace',
 }
 

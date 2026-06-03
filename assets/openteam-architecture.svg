@@ -1,6 +1,6 @@
 <svg width="1280" height="760" viewBox="0 0 1280 760" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
-  <title id="title">OpenCouncil system architecture</title>
-  <desc id="desc">A clean three-column architecture diagram for OpenCouncil showing browser, gateway, frontend, backend, council engine, local data, and local CLI providers.</desc>
+  <title id="title">OpenTeam system architecture</title>
+  <desc id="desc">A clean three-column architecture diagram for OpenTeam showing browser, gateway, frontend, backend, council engine, local data, and local CLI providers.</desc>
 
   <defs>
     <marker id="arrow" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="10" markerHeight="10" orient="auto">
@@ -40,7 +40,7 @@
   <rect width="1280" height="760" rx="36" fill="#FAF6F1"/>
   <path d="M126 112C214 47 340 43 452 87C556 128 632 87 748 69C874 49 1001 70 1102 134C1194 193 1211 300 1172 396C1134 489 1199 579 1104 652C1007 727 848 694 734 705C591 719 470 732 354 681C236 629 148 548 111 439C72 324 28 185 126 112Z" fill="#C43A2F" opacity="0.045"/>
 
-  <text x="72" y="50" class="label title">OpenCouncil System Architecture</text>
+  <text x="72" y="50" class="label title">OpenTeam System Architecture</text>
   <text x="72" y="80" class="label muted body">Local-first agent council with explicit routing, streaming rooms, local CLI providers, and persistent context.</text>
 
   <rect x="56" y="112" width="1168" height="584" rx="28" fill="#FFFDF9" stroke="#E4D2C2" stroke-width="1.4"/>

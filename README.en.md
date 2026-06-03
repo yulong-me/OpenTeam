@@ -1,7 +1,7 @@
-# OpenCouncil
+# OpenTeam
 
 <p align="center">
-  <img src="assets/opencouncil-icon-tile-light.svg" alt="OpenCouncil logo" width="112">
+  <img src="assets/openteam-icon-tile-light.svg" alt="OpenTeam logo" width="112">
 </p>
 
 <p align="center">
@@ -10,7 +10,7 @@
 
 > Custom agent councils for real work.
 
-OpenCouncil turns "one AI answering alone" into a configurable council of agents. You can create different Teams for feature review, architecture decisions, market research, code implementation, or any workflow that benefits from multiple roles working in the same room.
+OpenTeam turns "one AI answering alone" into a configurable council of agents. You can create different Teams for feature review, architecture decisions, market research, code implementation, or any workflow that benefits from multiple roles working in the same room.
 
 Each message can be routed to a specific Agent. Agents can also use `@mention` to challenge, verify, or hand work to each other. The discussion stays in local context and can be connected to the workspace, reports, and implementation work.
 
@@ -43,7 +43,7 @@ https://github.com/user-attachments/assets/930440d8-4971-4e92-8d35-a903b6d729b3
 Production mode uses a single public entry point on `7000`. Development mode keeps frontend and backend separate by default:
 
 <p align="center">
-  <img src="assets/opencouncil-architecture.svg" alt="OpenCouncil system architecture">
+  <img src="assets/openteam-architecture.svg" alt="OpenTeam system architecture">
 </p>
 
 - `Gateway :7000`: production entry point; routes `/api/*` and `/socket.io/*` to the backend and everything else to the frontend.
@@ -101,8 +101,8 @@ codex --version
 ### Clone
 
 ```bash
-git clone https://github.com/yulong-me/OpenCouncil.git
-cd OpenCouncil
+git clone https://github.com/yulong-me/OpenTeam.git
+cd OpenTeam
 ```
 
 ### Install dependencies
@@ -157,7 +157,7 @@ pnpm dev:gateway
 | Backend API (internal) | http://localhost:7001 |
 | Frontend UI (internal) | http://localhost:7002 |
 
-On first startup, OpenCouncil creates the SQLite database automatically:
+On first startup, OpenTeam creates the SQLite database automatically:
 
 - `backend/data/muti-agent.db`
 

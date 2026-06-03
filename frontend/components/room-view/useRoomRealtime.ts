@@ -11,7 +11,7 @@ import { mergeSessionTelemetryMaps } from '@/lib/telemetry'
 import type { AgentRunErrorEvent } from '../ErrorBubble'
 
 const API = API_URL
-const USE_SOCKET_REALTIME = !API.startsWith('opencouncil-api://')
+const USE_SOCKET_REALTIME = !API.startsWith('openteam-api://')
 
 interface UseRoomRealtimeOptions {
   roomId?: string

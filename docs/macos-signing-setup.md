@@ -6,7 +6,7 @@ created: 2026-06-02
 
 # macOS Signing Setup
 
-This is the required setup for customer-installable OpenCouncil macOS builds.
+This is the required setup for customer-installable OpenTeam macOS builds.
 Branch dry-run artifacts are intentionally unsigned and may be blocked by
 Gatekeeper. Customer builds require Developer ID signing and Apple notarization.
 
@@ -40,11 +40,11 @@ base64 -i mac-codesign.p12 | pbcopy
 Set these repository secrets:
 
 ```bash
-gh secret set MAC_CSC_LINK --repo yulong-me/OpenCouncil
-gh secret set MAC_CSC_KEY_PASSWORD --repo yulong-me/OpenCouncil
-gh secret set APPLE_ID --repo yulong-me/OpenCouncil
-gh secret set APPLE_APP_SPECIFIC_PASSWORD --repo yulong-me/OpenCouncil
-gh secret set APPLE_TEAM_ID --repo yulong-me/OpenCouncil
+gh secret set MAC_CSC_LINK --repo yulong-me/OpenTeam
+gh secret set MAC_CSC_KEY_PASSWORD --repo yulong-me/OpenTeam
+gh secret set APPLE_ID --repo yulong-me/OpenTeam
+gh secret set APPLE_APP_SPECIFIC_PASSWORD --repo yulong-me/OpenTeam
+gh secret set APPLE_TEAM_ID --repo yulong-me/OpenTeam
 ```
 
 Values:
@@ -58,7 +58,7 @@ Values:
 Verify the secrets exist:
 
 ```bash
-gh secret list --repo yulong-me/OpenCouncil
+gh secret list --repo yulong-me/OpenTeam
 ```
 
 ## Publish A Signed Release

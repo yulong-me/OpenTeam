@@ -43,7 +43,7 @@ function electronBuilder(args) {
 }
 
 function macAppDir() {
-  const dir = resolve(outputDir, process.arch === 'arm64' ? 'mac-arm64' : 'mac', 'OpenCouncil.app');
+  const dir = resolve(outputDir, process.arch === 'arm64' ? 'mac-arm64' : 'mac', 'OpenTeam.app');
   if (!existsSync(dir)) {
     throw new Error(`Expected packaged app bundle to exist: ${dir}`);
   }
@@ -56,7 +56,7 @@ function writeLocalUpdateConfig(configPath) {
     [
       'provider: generic',
       `url: ${updateUrl.endsWith('/') ? updateUrl : `${updateUrl}/`}`,
-      'updaterCacheDirName: opencouncil-updater',
+      'updaterCacheDirName: openteam-updater',
       '',
     ].join('\n'),
   );
@@ -67,7 +67,7 @@ function sha512Base64(filePath) {
 }
 
 function buildUpdaterZip(appDir) {
-  const zipName = `OpenCouncil-${version}-${process.arch}-mac.zip`;
+  const zipName = `OpenTeam-${version}-${process.arch}-mac.zip`;
   const zipPath = resolve(outputDir, zipName);
   rmSync(zipPath, { force: true });
   rmSync(`${zipPath}.blockmap`, { force: true });

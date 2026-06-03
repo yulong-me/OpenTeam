@@ -17,7 +17,7 @@ autoUpdater.autoDownload = true;
 
 protocol.registerSchemesAsPrivileged([
   {
-    scheme: 'opencouncil-app',
+    scheme: 'openteam-app',
     privileges: {
       standard: true,
       secure: true,
@@ -26,7 +26,7 @@ protocol.registerSchemesAsPrivileged([
     },
   },
   {
-    scheme: 'opencouncil-api',
+    scheme: 'openteam-api',
     privileges: {
       standard: true,
       secure: true,
@@ -42,6 +42,24 @@ function resolveAppPath(...parts) {
 
 function ensureDir(dir) {
   fs.mkdirSync(dir, { recursive: true });
+}
+
+function migrateLegacyUserData() {
+  const userData = app.getPath('userData');
+  const legacyProfileName = ['open', 'council'].join('');
+  const legacyUserData = path.join(app.getPath('appData'), legacyProfileName);
+  const currentDb = path.join(userData, 'runtime', 'data', 'muti-agent.db');
+  const legacyDb = path.join(legacyUserData, 'runtime', 'data', 'muti-agent.db');
+
+  if (legacyUserData === userData || fs.existsSync(currentDb) || !fs.existsSync(legacyDb)) return;
+
+  ensureDir(userData);
+  fs.cpSync(legacyUserData, userData, {
+    recursive: true,
+    force: false,
+    errorOnExist: false,
+  });
+  console.log('[migration] legacy user data copied into OpenTeam profile');
 }
 
 function contentTypeFor(filePath) {
@@ -87,28 +105,28 @@ function showStartupError(error) {
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(`
       <main style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; padding: 32px; line-height: 1.5;">
-        <h1>OpenCouncil could not start</h1>
+        <h1>OpenTeam could not start</h1>
         <p>${message}</p>
       </main>
     `)}`);
   } else {
-    dialog.showErrorBox('OpenCouncil could not start', message);
+    dialog.showErrorBox('OpenTeam could not start', message);
   }
 }
 
 function setupInternalApiProtocol() {
-  protocol.handle('opencouncil-api', (request) => {
+  protocol.handle('openteam-api', (request) => {
     if (!backendProtocolHandler) {
-      return new Response('OpenCouncil backend is not ready', {
+      return new Response('OpenTeam backend is not ready', {
         status: 503,
         headers: { 'content-type': 'text/plain; charset=utf-8' },
       });
     }
     return backendProtocolHandler(request);
   });
-  protocol.handle('opencouncil-app', (request) => {
+  protocol.handle('openteam-app', (request) => {
     if (!frontendProtocolHandler) {
-      return new Response('OpenCouncil frontend is not ready', {
+      return new Response('OpenTeam frontend is not ready', {
         status: 503,
         headers: { 'content-type': 'text/plain; charset=utf-8' },
       });
@@ -164,14 +182,15 @@ async function loadFrontendApp() {
 }
 
 async function startRuntime() {
+  migrateLegacyUserData();
   const userData = app.getPath('userData');
   const runtimeRoot = path.join(userData, 'runtime');
   ensureDir(runtimeRoot);
 
   const commonEnv = {
     NODE_ENV: 'production',
-    OPENCOUNCIL_RUNTIME_ROOT: runtimeRoot,
-    OPENCOUNCIL_BUILTIN_SKILLS_DIR: resolveAppPath('.agents', 'skills'),
+    OPENTEAM_RUNTIME_ROOT: runtimeRoot,
+    OPENTEAM_BUILTIN_SKILLS_DIR: resolveAppPath('.agents', 'skills'),
   };
 
   const backendApp = await loadBackendApp(commonEnv);
@@ -185,7 +204,7 @@ function createWindow() {
     height: 860,
     minWidth: 980,
     minHeight: 680,
-    title: `OpenCouncil ${app.getVersion()}`,
+    title: `OpenTeam ${app.getVersion()}`,
     backgroundColor: '#f7f4ef',
     webPreferences: {
       contextIsolation: true,
@@ -194,8 +213,8 @@ function createWindow() {
     },
   });
 
-  const frontendUrl = new URL('opencouncil-app://local/');
-  frontendUrl.searchParams.set('opencouncilApi', 'opencouncil-api://local');
+  const frontendUrl = new URL('openteam-app://local/');
+  frontendUrl.searchParams.set('openteamApi', 'openteam-api://local');
   mainWindow.webContents.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL) => {
     console.error(`[renderer] failed to load ${validatedURL}: ${errorCode} ${errorDescription}`);
   });
@@ -233,7 +252,7 @@ function setupAutoUpdates() {
       defaultId: 0,
       cancelId: 1,
       title: '更新已就绪',
-      message: '新版 OpenCouncil 已下载完成。',
+      message: '新版 OpenTeam 已下载完成。',
       detail: '重启应用后将自动完成升级。',
     });
 

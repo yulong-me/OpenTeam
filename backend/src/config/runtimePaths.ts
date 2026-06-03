@@ -6,9 +6,9 @@ const fileDir = path.dirname(fileURLToPath(import.meta.url));
 const backendRoot = path.resolve(fileDir, '..', '..');
 const repoRoot = path.resolve(backendRoot, '..');
 
-const runtimeRoot = path.resolve(process.env.OPENCOUNCIL_RUNTIME_ROOT ?? backendRoot);
+const runtimeRoot = path.resolve(process.env.OPENTEAM_RUNTIME_ROOT ?? backendRoot);
 const builtinSkillsDir = path.resolve(
-  process.env.OPENCOUNCIL_BUILTIN_SKILLS_DIR ?? path.join(repoRoot, '.agents', 'skills'),
+  process.env.OPENTEAM_BUILTIN_SKILLS_DIR ?? path.join(repoRoot, '.agents', 'skills'),
 );
 
 export const runtimePaths = {

@@ -12,12 +12,12 @@ created: 2026-04-21
 
 收敛一个前置判断：
 
-在 F023 Skill System 开工前，OpenCouncil 是否只需要补一条 `build` 命令，还是必须先建立一层正式的 Runtime App Root / `start` 运行语义。
+在 F023 Skill System 开工前，OpenTeam 是否只需要补一条 `build` 命令，还是必须先建立一层正式的 Runtime App Root / `start` 运行语义。
 
 本轮不实现，只回答三件事：
 
 1. F023 对运行目录和打包语义到底要求了什么
-2. 当前 OpenCouncil 与这些要求的真实差距在哪里
+2. 当前 OpenTeam 与这些要求的真实差距在哪里
 3. 应该先补什么基础能力，才能让 F023 Phase 1 有稳定落点
 
 ## Executive Summary
@@ -40,7 +40,7 @@ workspace build
 = 可运行应用目录
 ```
 
-因此，OpenCouncil 若要按 F023 落地，建议先补一层 **Runtime Foundation**：
+因此，OpenTeam 若要按 F023 落地，建议先补一层 **Runtime Foundation**：
 
 1. 明确 runtime path resolver
 2. 增加 root-level `start` 生产入口
@@ -81,7 +81,7 @@ F023 已经把边界写得很清楚：
 - AC-9: 运行前生成 provider runtime dir
 - AC-10 / AC-11: skill 通过软链接注入 provider-native 目录，而不是复制
 
-## Current OpenCouncil State
+## Current OpenTeam State
 
 ### 1. `build` 现在只解决编译，不解决运行态
 
@@ -186,7 +186,7 @@ build 成功
 
 **运行时存在一个明确的 app root，启动脚本围绕它组织数据目录、服务进程和生产模式。**
 
-这对 OpenCouncil 的启发是：
+这对 OpenTeam 的启发是：
 
 - 不一定要一开始就复制 `clowder-ai` 的 runtime worktree
 - 但必须尽快建立“runtime app root”这个抽象
@@ -242,7 +242,7 @@ build 成功
 
 ### Decision 1: 明确术语
 
-在 OpenCouncil 里区分三件事：
+在 OpenTeam 里区分三件事：
 
 1. `build`
    只负责编译产物
@@ -261,7 +261,7 @@ build 成功
 
 ### Decision 2: 先做 direct runtime，不强依赖 runtime worktree
 
-`clowder-ai` 的 runtime worktree 模式很有价值，但对 OpenCouncil 来说不是 F023 的最小前置条件。
+`clowder-ai` 的 runtime worktree 模式很有价值，但对 OpenTeam 来说不是 F023 的最小前置条件。
 
 建议先做：
 
@@ -320,7 +320,7 @@ F023 落地时，provider 启动层至少要能接收：
 
 ### Step 2: Root Production Start
 
-在 OpenCouncil 根目录增加正式的生产入口：
+在 OpenTeam 根目录增加正式的生产入口：
 
 - `backend start`
 - `frontend start`

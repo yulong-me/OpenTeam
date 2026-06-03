@@ -13,7 +13,7 @@ updated: 2026-04-21
 
 ## Why
 
-当前 OpenCouncil 已经有：
+当前 OpenTeam 已经有：
 
 - `team`：房间协作模式与成员组合
 - `agent.systemPrompt`：参与者身份职责
@@ -53,7 +53,7 @@ updated: 2026-04-21
 
 ## What
 
-引入独立的 **Skill System**，让 OpenCouncil 可以：
+引入独立的 **Skill System**，让 OpenTeam 可以：
 
 1. 维护 Skill Catalog（查看 / 新建 / 编辑 / 删除 / 启停）
 2. 给 Agent 绑定默认 Skills
@@ -103,7 +103,7 @@ Room 级团队配置。回答“谁一起做事、如何协作”。
 
 Room 默认工作目录，由平台维护。
 
-在当前 OpenCouncil 实现里，默认形态对齐为：
+在当前 OpenTeam 实现里，默认形态对齐为：
 
 ```text
 <runtimeAppRoot>/backend/workspaces/room-<roomId>/

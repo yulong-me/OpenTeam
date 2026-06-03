@@ -41,7 +41,7 @@ assert.ok(packageJson.devDependencies['@electron/rebuild'], 'Electron native mod
 assert.deepEqual(packageJson.build.publish, [{
   provider: 'github',
   owner: 'yulong-me',
-  repo: 'OpenCouncil',
+  repo: 'OpenTeam',
 }]);
 assert.deepEqual(packageJson.build.mac.target, ['dmg', 'zip']);
 assert.equal(packageJson.build.win.target[0].target, 'nsis');
@@ -51,8 +51,10 @@ assert.equal(packageJson.build.nsis.perMachine, false);
 assert.equal(packageJson.build.generateUpdatesFilesForAllChannels, true);
 assert.equal(packageJson.build.compression, 'normal');
 
-assert.match(mainSource, /OPENCOUNCIL_RUNTIME_ROOT/, 'desktop runtime must isolate mutable app data');
-assert.match(mainSource, /OPENCOUNCIL_BUILTIN_SKILLS_DIR/, 'desktop runtime must still find builtin agent skills');
+assert.match(mainSource, /OPENTEAM_RUNTIME_ROOT/, 'desktop runtime must isolate mutable app data');
+assert.match(mainSource, /OPENTEAM_BUILTIN_SKILLS_DIR/, 'desktop runtime must still find builtin agent skills');
+assert.match(mainSource, /migrateLegacyUserData/, 'desktop runtime must migrate legacy user data into the OpenTeam profile');
+assert.match(mainSource, /\['open', 'council'\]\.join\(''\)/, 'legacy profile migration must avoid reintroducing the old brand token');
 assert.match(mainSource, /loadBackendApp/, 'desktop launcher must load the compiled backend inside the Electron main process');
 assert.match(mainSource, /loadFrontendApp/, 'desktop launcher must load the frontend request handler inside the Electron main process');
 assert.match(mainSource, /createExpressProtocolHandler/, 'desktop launcher must bridge the backend app through the Electron protocol handler');
@@ -67,15 +69,15 @@ assert.doesNotMatch(mainSource, /BACKEND_SOCKET_PATH|backendSocketPath|backend\.
 assert.doesNotMatch(mainSource, /frontend-socket-server\.cjs/, 'desktop launcher must not start a frontend socket server in stage 3 mode');
 assert.match(mainSource, /resolveAppPath\('frontend', '\.next', 'standalone'\)/, 'packaged desktop launcher must load the Next standalone request handler');
 assert.match(mainSource, /protocol\.registerSchemesAsPrivileged/, 'desktop launcher must register an internal API protocol');
-assert.match(mainSource, /scheme: 'opencouncil-app'/, 'desktop launcher must load the frontend through a custom protocol');
-assert.match(mainSource, /scheme: 'opencouncil-api'/, 'desktop launcher must expose backend API through a custom protocol');
+assert.match(mainSource, /scheme: 'openteam-app'/, 'desktop launcher must load the frontend through a custom protocol');
+assert.match(mainSource, /scheme: 'openteam-api'/, 'desktop launcher must expose backend API through a custom protocol');
 assert.doesNotMatch(mainSource, /spawnManaged\('gateway'/, 'desktop launcher must not start the gateway process in stage 3 mode');
 assert.doesNotMatch(mainSource, /resolveAppPath\('scripts', 'gateway\.mjs'\)/, 'desktop launcher must not package the gateway into the runtime path');
 assert.doesNotMatch(mainSource, /findAvailablePort|waitForPort|portOpen/, 'desktop launcher must not probe or reserve TCP ports');
 assert.doesNotMatch(mainSource, /FRONTEND_PORT|BACKEND_PORT|GATEWAY_PORT/, 'desktop launcher must not configure local TCP ports');
 assert.doesNotMatch(mainSource, /ELECTRON_RUN_AS_NODE/, 'desktop launcher must not run app services as detached Node children in stage 3 mode');
-assert.match(mainSource, /opencouncilApi/, 'desktop window must pass the internal API protocol to the frontend');
-assert.match(mainSource, /opencouncil-app:\/\/local\//, 'desktop window must load the frontend through the app protocol');
+assert.match(mainSource, /openteamApi/, 'desktop window must pass the internal API protocol to the frontend');
+assert.match(mainSource, /openteam-app:\/\/local\//, 'desktop window must load the frontend through the app protocol');
 assert.match(mainSource, /loadURL\(frontendUrl\.toString\(\)\)/, 'desktop window must load the frontend directly');
 assert.match(mainSource, /mainWindow\.on\('closed'/, 'desktop launcher must clear destroyed window references');
 assert.match(mainSource, /!mainWindow\.isDestroyed\(\)/, 'desktop launcher must not reuse destroyed windows');
@@ -115,7 +117,7 @@ assert.match(buildSource, /notarize: false/, 'macOS dry-run builds must not try 
 assert.match(buildSource, /desktop:preflight/, 'desktop build script must run release preflight');
 assert.match(buildSource, /desktop:prepare-frontend-standalone/, 'desktop build script must prepare standalone frontend assets before packaging');
 assert.match(buildSource, /DESKTOP_PUBLISH_MODE: publish/, 'desktop build script must pass publish mode to preflight');
-assert.match(buildSource, /'mac-arm64' : 'mac', 'OpenCouncil\.app'/, 'desktop build script must pass the real .app bundle to --prepackaged');
+assert.match(buildSource, /'mac-arm64' : 'mac', 'OpenTeam\.app'/, 'desktop build script must pass the real .app bundle to --prepackaged');
 assert.doesNotMatch(buildSource, /writeFileSync\(.*app-update\.yml/s, 'desktop build script must not mutate signed macOS apps after packaging');
 assert.match(buildSource, /electronBuilder\(\['--dir', \.\.\.configArgs, '--publish', publish\]\)/, 'desktop build script must create a prepackaged app with publish metadata before artifacts');
 assert.match(buildSource, /buildMacDistributables\('always'\)/, 'desktop publish builds must use the signed production macOS configuration');
@@ -142,7 +144,7 @@ assert.ok(
 
 assert.match(macLocalUpdateSource, /DESKTOP_RELEASE_VERSION/, 'macOS local update rehearsal must support explicit old and new versions');
 assert.match(macLocalUpdateSource, /DESKTOP_UPDATE_URL/, 'macOS local update rehearsal must embed a local update feed URL');
-assert.match(macLocalUpdateSource, /'mac-arm64' : 'mac', 'OpenCouncil\.app'/, 'macOS local update rehearsal must package the real .app bundle');
+assert.match(macLocalUpdateSource, /'mac-arm64' : 'mac', 'OpenTeam\.app'/, 'macOS local update rehearsal must package the real .app bundle');
 assert.match(macLocalUpdateSource, /provider: 'generic'/, 'macOS local update rehearsal must use the generic update provider');
 assert.match(macLocalUpdateSource, /app-update\.yml/, 'macOS local update rehearsal must package updater provider config into the app');
 assert.match(macLocalUpdateSource, /extraResources/, 'macOS local update rehearsal must inject updater config before signing');
@@ -176,7 +178,7 @@ assert.match(releaseWorkflow, /pnpm desktop:dist:local/, 'release workflow must 
 assert.match(releaseWorkflow, /pnpm run desktop:preflight/, 'release workflow must run release preflight');
 assert.match(releaseWorkflow, /pnpm run desktop:verify-artifacts/, 'release workflow must verify desktop artifacts');
 assert.match(releaseWorkflow, /DESKTOP_TARGET_PLATFORM: darwin/, 'release workflow must preflight macOS secrets');
-assert.match(releaseWorkflow, /path: release\/OpenCouncil-\*-arm64\.dmg/, 'branch macOS artifacts should upload only the installable dmg');
+assert.match(releaseWorkflow, /path: release\/OpenTeam-\*-arm64\.dmg/, 'branch macOS artifacts should upload only the installable dmg');
 assert.doesNotMatch(releaseWorkflow, /release\/\*\.zip/, 'branch macOS artifact upload must not include updater zip files');
 assert.doesNotMatch(releaseWorkflow, /release\/\*\.yml/, 'branch macOS artifact upload must not include update metadata');
 assert.match(releaseWorkflow, /CSC_LINK/, 'release workflow must support code signing certificates');

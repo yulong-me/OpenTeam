@@ -1,4 +1,4 @@
-// OpenCouncil — shared tokens, atoms, demo data, chrome
+// OpenTeam — shared tokens, atoms, demo data, chrome
 // Editorial paper-tone aesthetic. All exports go on window so other Babel files see them.
 
 const ocTokens = {
@@ -271,7 +271,7 @@ const ocTeams = [
 // Page-level chrome — desktop window + sidebar layouts
 // ============================================================
 
-function MacChrome({ title = 'opencouncil', children, w = 1440, h = 900 }) {
+function MacChrome({ title = 'openteam', children, w = 1440, h = 900 }) {
   return (
     <div style={{
       width: w, height: h, background: ocColor('bg'),
@@ -380,7 +380,7 @@ function BrandMark({ mini = false }) {
       </div>
       {!mini && (
         <div>
-          <div style={{ fontFamily: '"Newsreader", serif', fontSize: 17, fontWeight: 500, lineHeight: 1, letterSpacing: '-0.005em' }}>OpenCouncil</div>
+          <div style={{ fontFamily: '"Newsreader", serif', fontSize: 17, fontWeight: 500, lineHeight: 1, letterSpacing: '-0.005em' }}>OpenTeam</div>
           <div style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 9.5, color: ocColor('ink2'), letterSpacing: '0.16em', marginTop: 2 }}>OPEN · TEAM · COUNCIL</div>
         </div>
       )}

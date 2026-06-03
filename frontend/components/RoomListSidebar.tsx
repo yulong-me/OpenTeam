@@ -87,7 +87,7 @@ function SidebarBrand() {
         <Network className="h-3.5 w-3.5" aria-hidden />
       </span>
       <span className="min-w-0">
-        <p className="truncate text-title font-bold text-ink">OpenCouncil</p>
+        <p className="truncate text-title font-bold text-ink">OpenTeam</p>
         <p className="mt-0.5 truncate font-mono text-[10px] uppercase tracking-[0.16em] text-ink-faint">OPEN · TEAM · COUNCIL</p>
       </span>
     </div>

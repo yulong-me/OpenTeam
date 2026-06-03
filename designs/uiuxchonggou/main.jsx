@@ -1,4 +1,4 @@
-// OpenCouncil — main canvas mount
+// OpenTeam — main canvas mount
 
 const { useEffect } = React;
 
@@ -27,7 +27,7 @@ function App() {
       <DesignCanvas
         intro={
           <div>
-            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6, fontFamily: '"Newsreader", serif', fontSize: 18, fontWeight: 500 }}>OpenCouncil · 主线原型</div>
+            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6, fontFamily: '"Newsreader", serif', fontSize: 18, fontWeight: 500 }}>OpenTeam · 主线原型</div>
             <div style={{ fontSize: 12.5, color: 'rgba(60,50,40,0.75)', lineHeight: 1.55 }}>
               基于你的产品规格做的高保真静态设计。三组画板：
               <b>桌面 · 主线</b>（首页 → 发起任务 → 协作 → 结束 → 改进），

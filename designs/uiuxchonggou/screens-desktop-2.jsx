@@ -1,4 +1,4 @@
-// OpenCouncil — Room screens (空消息态 / 进行中 / 任务结束态)
+// OpenTeam — Room screens (空消息态 / 进行中 / 任务结束态)
 
 // ============================================================
 // Room layout primitives
@@ -173,7 +173,7 @@ function ContextRing({ percent = 0.5, size = 16 }) {
 // ============================================================
 function ScreenRoomEmpty() {
   return (
-    <MacChrome title="opencouncil · 协作现场" w={1440} h={900}>
+    <MacChrome title="openteam · 协作现场" w={1440} h={900}>
       <LeftRail activeId={1} />
       <main style={{ flex: 1, display: 'flex', minWidth: 0 }}>
         <section style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
@@ -265,7 +265,7 @@ function Composer({ placeholder = '说清楚目标、交付物、边界。⌘↵
 // ============================================================
 function ScreenRoomActive() {
   return (
-    <MacChrome title="opencouncil · 协作现场 · 进行中" w={1440} h={1180}>
+    <MacChrome title="openteam · 协作现场 · 进行中" w={1440} h={1180}>
       <LeftRail activeId={1} />
       <main style={{ flex: 1, display: 'flex', minWidth: 0 }}>
         <section style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
@@ -433,7 +433,7 @@ function AgentMsg({ agent, time, body, streamLabel, streaming = false, meta = nu
 // ============================================================
 function ScreenRoomDone() {
   return (
-    <MacChrome title="opencouncil · 协作现场 · 已结束" w={1440} h={900}>
+    <MacChrome title="openteam · 协作现场 · 已结束" w={1440} h={900}>
       <LeftRail activeId={3} />
       <main style={{ flex: 1, display: 'flex', minWidth: 0 }}>
         <section style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>

@@ -1,7 +1,7 @@
-# OpenCouncil
+# OpenTeam
 
 <p align="center">
-  <img src="assets/opencouncil-icon-tile-light.svg" alt="OpenCouncil logo" width="112">
+  <img src="assets/openteam-icon-tile-light.svg" alt="OpenTeam logo" width="112">
 </p>
 
 <p align="center">
@@ -10,7 +10,7 @@
 
 > Custom agent councils for real work.
 
-OpenCouncil 把“一个 AI 单独回答”升级成“一场可编排的专家会”。你可以为不同任务创建 Team，例如功能评审、架构决策、市场调研或代码实现，再把不同角色的 Agent 放进同一个房间。
+OpenTeam 把“一个 AI 单独回答”升级成“一场可编排的专家会”。你可以为不同任务创建 Team，例如功能评审、架构决策、市场调研或代码实现，再把不同角色的 Agent 放进同一个房间。
 
 每条消息都可以明确路由给某位 Agent；Agent 之间也能通过 `@mention` 互相追问、质疑和补充。讨论过程会保留在本地上下文里，并可结合 Workspace 与报告能力，把想法推进到方案、任务甚至代码。
 
@@ -43,7 +43,7 @@ https://github.com/user-attachments/assets/930440d8-4971-4e92-8d35-a903b6d729b3
 生产模式使用统一入口 `7000`，开发模式默认仍保持前后端分离：
 
 <p align="center">
-  <img src="assets/opencouncil-architecture.svg" alt="OpenCouncil system architecture">
+  <img src="assets/openteam-architecture.svg" alt="OpenTeam system architecture">
 </p>
 
 - `Gateway :7000`：生产模式统一入口，按路径把 `/api/*` 和 `/socket.io/*` 转发给后端，其余请求交给前端
@@ -101,8 +101,8 @@ codex --version
 ### 克隆仓库
 
 ```bash
-git clone https://github.com/yulong-me/OpenCouncil.git
-cd OpenCouncil
+git clone https://github.com/yulong-me/OpenTeam.git
+cd OpenTeam
 ```
 
 ### 安装依赖

@@ -41,7 +41,7 @@ Required evidence:
 
 - macOS job passes `desktop:preflight`
 - macOS job passes `desktop:verify-artifacts`
-- workflow uploads `desktop-macos` with only `OpenCouncil-<version>-<arch>.dmg`
+- workflow uploads `desktop-macos` with only `OpenTeam-<version>-<arch>.dmg`
 
 Dry-run branch artifacts are for packaging verification. Because they are not
 Developer ID signed and notarized, macOS may show them as damaged after
@@ -62,8 +62,8 @@ git push origin v0.1.1
 
 Required release assets:
 
-- macOS `OpenCouncil-<version>-<arch>.dmg`
-- macOS `OpenCouncil-<version>-<arch>-mac.zip`
+- macOS `OpenTeam-<version>-<arch>.dmg`
+- macOS `OpenTeam-<version>-<arch>-mac.zip`
 - macOS `latest-mac.yml`
 - blockmaps for update artifacts
 
@@ -95,7 +95,7 @@ DESKTOP_RELEASE_DIR=release/mac-local-update-old \
 pnpm desktop:dist:mac-local-update
 ```
 
-2. Install `release/mac-local-update-old/OpenCouncil-0.1.0-<arch>.dmg`.
+2. Install `release/mac-local-update-old/OpenTeam-0.1.0-<arch>.dmg`.
 3. Change application code and bump the version.
 4. Build the new client with the same update URL:
 

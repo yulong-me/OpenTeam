@@ -93,8 +93,8 @@ gh secret list --repo yulong-me/OpenTeam
 3. Create and push a matching tag:
 
 ```bash
-git tag v0.1.1
-git push origin v0.1.1
+git tag v0.1.2
+git push origin v0.1.2
 ```
 
 The `Desktop Release` workflow then runs in publish mode. The publish preflight

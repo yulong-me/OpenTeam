@@ -24,20 +24,55 @@ function electronBuilder(args) {
   run(pnpm, ['exec', 'electron-builder', ...args]);
 }
 
-function macDryRunConfigPath() {
+function writeMacGithubUpdateConfig(path) {
+  const publishTarget = packageJson.build.publish?.[0] ?? {};
+  if (publishTarget.provider !== 'github' || !publishTarget.owner || !publishTarget.repo) {
+    throw new Error('macOS updater config requires a GitHub publish target');
+  }
+
+  writeFileSync(path, [
+    'provider: github',
+    `owner: ${publishTarget.owner}`,
+    `repo: ${publishTarget.repo}`,
+    '',
+  ].join('\n'));
+}
+
+function macConfigPath(name, overrides = {}) {
   const dir = resolve(root, 'release', '.desktop-build');
   mkdirSync(dir, { recursive: true });
-  const configPath = resolve(dir, 'electron-builder-mac-dry-run.json');
+  const appUpdateConfigPath = resolve(dir, `app-update-${name}.yml`);
+  const configPath = resolve(dir, `electron-builder-mac-${name}.json`);
+  writeMacGithubUpdateConfig(appUpdateConfigPath);
   writeFileSync(configPath, `${JSON.stringify({
     ...packageJson.build,
+    extraResources: [
+      ...(packageJson.build.extraResources ?? []),
+      {
+        from: appUpdateConfigPath,
+        to: 'app-update.yml',
+      },
+    ],
     mac: {
       ...packageJson.build.mac,
+      ...overrides.mac,
+    },
+  }, null, 2)}\n`);
+  return configPath;
+}
+
+function macDryRunConfigPath() {
+  return macConfigPath('dry-run', {
+    mac: {
       hardenedRuntime: false,
       identity: null,
       notarize: false,
     },
-  }, null, 2)}\n`);
-  return configPath;
+  });
+}
+
+function macPublishConfigPath() {
+  return macConfigPath('publish');
 }
 
 function buildRuntime() {
@@ -97,7 +132,7 @@ if (mode === 'pack') {
   preflight('always');
   buildRuntime();
   if (process.platform === 'darwin') {
-    buildMacDistributables('always');
+    buildMacDistributables('always', macPublishConfigPath());
   } else if (process.platform === 'win32') {
     electronBuilder(['--win', '--x64', '--publish', 'always']);
   } else {

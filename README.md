@@ -240,8 +240,8 @@ pnpm desktop:dist
 桌面发布使用 GitHub Releases 作为更新源。正式发布时创建版本 tag：
 
 ```bash
-git tag v0.1.1
-git push origin v0.1.1
+git tag v0.1.2
+git push origin v0.1.2
 ```
 
 `.github/workflows/desktop-release.yml` 会在 macOS runner 上构建并发布：

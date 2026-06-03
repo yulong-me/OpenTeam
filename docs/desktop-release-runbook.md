@@ -64,8 +64,8 @@ download. Customer-installable builds require the publish gate below.
 3. Create a matching tag:
 
 ```bash
-git tag v0.1.1
-git push origin v0.1.1
+git tag v0.1.2
+git push origin v0.1.2
 ```
 
 `desktop-release-preflight` requires the tag to match `package.json` exactly.
@@ -110,7 +110,7 @@ pnpm desktop:dist:mac-local-update
 4. Build the new client with the same update URL:
 
 ```bash
-DESKTOP_RELEASE_VERSION=0.1.1 \
+DESKTOP_RELEASE_VERSION=0.1.2 \
 DESKTOP_UPDATE_URL=http://127.0.0.1:7333/ \
 DESKTOP_RELEASE_DIR=release/mac-local-update-new \
 pnpm desktop:dist:mac-local-update

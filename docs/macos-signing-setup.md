@@ -111,6 +111,7 @@ The signed release is not complete until the workflow proves all of this:
 - macOS `dmg`, updater `zip`, and `latest-mac.yml` are published to the GitHub Release.
 - `desktop:verify-artifacts` passes in publish mode and finds `app-update.yml`.
 - `desktop:verify-signing` passes `codesign`, `stapler`, `spctl`, and `hdiutil verify`.
+- `desktop:verify-installability` mounts the dmg, copies `OpenTeam.app`, applies a quarantine marker, and passes `codesign`, `stapler`, and `spctl`.
 - A downloaded release dmg opens without removing quarantine attributes.
 
 ## Why Dry-Run Builds Fail For Customers

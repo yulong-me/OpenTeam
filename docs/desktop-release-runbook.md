@@ -50,6 +50,7 @@ Required evidence:
 - macOS job passes `desktop:preflight`
 - macOS job passes `desktop:verify-artifacts`
 - macOS job passes `desktop:verify-signing`
+- macOS job passes `desktop:verify-installability`
 - workflow uploads `desktop-macos` with only `OpenTeam-<version>-<arch>.dmg`
 
 Dry-run branch artifacts are for packaging verification. Because they are not

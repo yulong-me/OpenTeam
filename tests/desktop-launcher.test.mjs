@@ -18,6 +18,7 @@ const updateFeedServerSource = readFileSync(resolve(root, 'scripts/serve-desktop
 const preflightSource = readFileSync(resolve(root, 'scripts/desktop-release-preflight.mjs'), 'utf8');
 const verifyArtifactsSource = readFileSync(resolve(root, 'scripts/verify-desktop-artifacts.mjs'), 'utf8');
 const verifySigningSource = readFileSync(resolve(root, 'scripts/verify-macos-signing.mjs'), 'utf8');
+const verifyInstallabilitySource = readFileSync(resolve(root, 'scripts/verify-macos-installability.mjs'), 'utf8');
 const configureSigningSource = readFileSync(resolve(root, 'scripts/configure-macos-signing-secrets.mjs'), 'utf8');
 const releaseWorkflow = readFileSync(resolve(root, '.github/workflows/desktop-release.yml'), 'utf8');
 const releaseRunbook = readFileSync(resolve(root, 'docs/desktop-release-runbook.md'), 'utf8');
@@ -30,6 +31,7 @@ assert.equal(packageJson.scripts['desktop:preflight'], 'node scripts/desktop-rel
 assert.equal(packageJson.scripts['desktop:prepare-frontend-standalone'], 'node scripts/prepare-frontend-standalone.mjs');
 assert.equal(packageJson.scripts['desktop:verify-artifacts'], 'node scripts/verify-desktop-artifacts.mjs');
 assert.equal(packageJson.scripts['desktop:verify-signing'], 'node scripts/verify-macos-signing.mjs');
+assert.equal(packageJson.scripts['desktop:verify-installability'], 'node scripts/verify-macos-installability.mjs');
 assert.equal(packageJson.scripts['desktop:configure-mac-signing'], 'node scripts/configure-macos-signing-secrets.mjs');
 assert.equal(packageJson.scripts['desktop:dev'], 'pnpm build && pnpm run desktop:rebuild-native && electron desktop/main.cjs');
 assert.equal(packageJson.scripts['desktop:pack'], 'node scripts/build-desktop.mjs pack');
@@ -176,6 +178,13 @@ assert.match(verifySigningSource, /Developer ID Application/, 'macOS signing ver
 assert.match(verifySigningSource, /stapler/, 'macOS signing verifier must validate notarization staple');
 assert.match(verifySigningSource, /spctl/, 'macOS signing verifier must run Gatekeeper assessment');
 assert.match(verifySigningSource, /hdiutil/, 'macOS signing verifier must verify dmg integrity');
+assert.match(verifyInstallabilitySource, /hdiutil/, 'macOS installability verifier must mount the dmg');
+assert.match(verifyInstallabilitySource, /attach/, 'macOS installability verifier must attach the dmg like a customer install');
+assert.match(verifyInstallabilitySource, /detach/, 'macOS installability verifier must detach the mounted dmg');
+assert.match(verifyInstallabilitySource, /ditto/, 'macOS installability verifier must copy the mounted app into a temporary install location');
+assert.match(verifyInstallabilitySource, /codesign/, 'macOS installability verifier must verify copied app signature');
+assert.match(verifyInstallabilitySource, /stapler/, 'macOS installability verifier must validate copied app notarization staple');
+assert.match(verifyInstallabilitySource, /spctl/, 'macOS installability verifier must run Gatekeeper assessment on copied app');
 assert.match(configureSigningSource, /MAC_CSC_LINK/, 'macOS signing setup must set the certificate secret');
 assert.match(configureSigningSource, /APPLE_APP_SPECIFIC_PASSWORD/, 'macOS signing setup must set notarization credentials');
 assert.match(configureSigningSource, /Developer ID Application/, 'macOS signing setup must require the right Apple certificate type');
@@ -191,6 +200,7 @@ assert.match(releaseWorkflow, /pnpm desktop:dist:local/, 'release workflow must 
 assert.match(releaseWorkflow, /pnpm run desktop:preflight/, 'release workflow must run release preflight');
 assert.match(releaseWorkflow, /pnpm run desktop:verify-artifacts/, 'release workflow must verify desktop artifacts');
 assert.match(releaseWorkflow, /pnpm run desktop:verify-signing/, 'release workflow must verify signed and notarized macOS artifacts');
+assert.match(releaseWorkflow, /pnpm run desktop:verify-installability/, 'release workflow must verify signed dmg installability');
 assert.match(releaseWorkflow, /DESKTOP_TARGET_PLATFORM: darwin/, 'release workflow must preflight macOS secrets');
 assert.match(releaseWorkflow, /path: release\/OpenTeam-\*-arm64\.dmg/, 'branch macOS artifacts should upload only the installable dmg');
 assert.doesNotMatch(releaseWorkflow, /release\/\*\.zip/, 'branch macOS artifact upload must not include updater zip files');

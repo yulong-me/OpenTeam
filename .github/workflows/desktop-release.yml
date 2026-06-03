@@ -100,6 +100,13 @@ jobs:
           DESKTOP_PUBLISH_MODE: always
           DESKTOP_TARGET_PLATFORM: darwin
 
+      - name: Verify macOS dmg installability
+        run: pnpm run desktop:verify-installability
+        if: github.ref_type == 'tag' || inputs.publish == 'always'
+        env:
+          DESKTOP_PUBLISH_MODE: always
+          DESKTOP_TARGET_PLATFORM: darwin
+
       - name: Upload local artifacts
         uses: actions/upload-artifact@v4
         if: github.ref_type != 'tag' && inputs.publish != 'always'

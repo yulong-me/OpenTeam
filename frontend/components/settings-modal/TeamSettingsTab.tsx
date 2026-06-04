@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { CircleHelp, Copy, Edit2, GitBranch, Loader2, Plus, Trash2, UsersRound, X } from 'lucide-react'
+import { CircleHelp, Loader2, Plus, Trash2, UsersRound, X } from 'lucide-react'
 
 import { API_URL } from '@/lib/api'
 import { getAgentColor, type TeamListItem } from '@/lib/agents'
@@ -20,14 +20,12 @@ const LONG_TEXT_MODAL_THRESHOLD = 120
 type TeamMemberSnapshot = NonNullable<TeamListItem['activeVersion']['memberSnapshots']>[number]
 type TeamMemberSkillRef = NonNullable<TeamMemberSnapshot['skillRefs']>[number]
 type SkillPickerSource = TeamMemberSkillRef['source']
-type TeamSubtab = 'members' | 'rules' | 'memory' | 'versions'
-type RoutingRule = { when: string; memberRole: string }
+type TeamSubtab = 'members' | 'rules' | 'memory'
 
 const TEAM_SUBTABS: Array<{ id: TeamSubtab; label: string; description: string }> = [
   { id: 'members', label: '成员', description: '编辑成员分工、执行工具和 Skill' },
-  { id: 'rules', label: '分工 & 规则', description: 'Team 协作方式和路由规则' },
+  { id: 'rules', label: '分工 & 规则', description: 'Team 协作方式' },
   { id: 'memory', label: '长期记忆', description: 'Team 级长期记忆' },
-  { id: 'versions', label: '历史版本', description: 'Team 版本记录和回滚' },
 ]
 
 interface SkillPickerOption {
@@ -48,7 +46,6 @@ interface TeamSettingsPatch {
     description?: string
     memberSnapshots?: TeamMemberSnapshot[]
     workflowPrompt?: string
-    routingPolicy?: Record<string, unknown>
     teamMemory?: string[]
   }
 }
@@ -93,6 +90,12 @@ function isSkillOptionCompatibleWithProvider(option: SkillPickerOption, provider
   return option.providerCompat.includes(provider)
 }
 
+function distinctRoleLabel(member: TeamMemberSnapshot): string {
+  const roleLabel = member.roleLabel?.trim() ?? ''
+  const name = member.name?.trim() ?? ''
+  return roleLabel && roleLabel !== name ? roleLabel : ''
+}
+
 function fallbackMembers(team?: TeamListItem): TeamMemberSnapshot[] {
   if (!team) return []
   if (team.activeVersion.memberSnapshots?.length) return team.activeVersion.memberSnapshots
@@ -104,36 +107,6 @@ function fallbackMembers(team?: TeamListItem): TeamMemberSnapshot[] {
     providerOpts: {},
     systemPrompt: '',
   }))
-}
-
-function getRoutingRules(policy?: Record<string, unknown>): RoutingRule[] {
-  const rules = Array.isArray(policy?.rules) ? policy.rules : []
-  return rules
-    .map(rule => {
-      if (typeof rule === 'string') {
-        const [when = rule, memberRole = ''] = rule.split('->').map(part => part.trim())
-        return { when, memberRole }
-      }
-      if (typeof rule !== 'object' || rule === null || Array.isArray(rule)) return null
-      const record = rule as Record<string, unknown>
-      return {
-        when: typeof record.when === 'string' ? record.when : '',
-        memberRole: typeof record.memberRole === 'string' ? record.memberRole : '',
-      }
-    })
-    .filter((rule): rule is RoutingRule => rule !== null && Boolean(rule.when || rule.memberRole))
-}
-
-function buildRoutingPolicy(policy: Record<string, unknown> | undefined, rules: RoutingRule[]): Record<string, unknown> {
-  return {
-    ...(policy ?? {}),
-    rules: rules
-      .map(rule => ({
-        when: rule.when.trim(),
-        memberRole: rule.memberRole.trim(),
-      }))
-      .filter(rule => rule.when || rule.memberRole),
-  }
 }
 
 function EditableText({
@@ -397,10 +370,6 @@ export function TeamSettingsTab({
   )
   const activeVersion = selectedTeam?.activeVersion
   const members = useMemo(() => fallbackMembers(selectedTeam), [selectedTeam])
-  const routingRules = useMemo(
-    () => getRoutingRules(activeVersion?.routingPolicy),
-    [activeVersion],
-  )
   const teamMemory = activeVersion?.teamMemory ?? []
 
   const skillOptions = useMemo<SkillPickerOption[]>(() => [
@@ -443,25 +412,6 @@ export function TeamSettingsTab({
 
   function saveMembers(nextMembers: TeamMemberSnapshot[]) {
     return saveSelected({ version: { memberSnapshots: nextMembers } })
-  }
-
-  function saveRoutingRules(nextRules: RoutingRule[]) {
-    if (!activeVersion) return Promise.resolve()
-    return saveSelected({ version: { routingPolicy: buildRoutingPolicy(activeVersion.routingPolicy, nextRules) } })
-  }
-
-  function updateRoutingRule(index: number, update: Partial<RoutingRule>) {
-    const nextRules = routingRules.map((rule, ruleIndex) => ruleIndex === index ? { ...rule, ...update } : rule)
-    return saveRoutingRules(nextRules)
-  }
-
-  function addRoutingRule() {
-    const fallbackRole = members[0]?.roleLabel || members[0]?.name || '成员角色'
-    return saveRoutingRules([...routingRules, { when: '新的触发条件', memberRole: fallbackRole }])
-  }
-
-  function removeRoutingRule(index: number) {
-    return saveRoutingRules(routingRules.filter((_rule, ruleIndex) => ruleIndex !== index))
   }
 
   function saveTeamMemory(nextMemory: string[]) {
@@ -542,9 +492,6 @@ export function TeamSettingsTab({
               >
                 <span className="flex min-w-0 items-center gap-2">
                   <span className="truncate text-[13px] font-bold">{team.name}</span>
-                  <span className="ml-auto shrink-0 rounded-md border border-line bg-surface-muted px-1.5 py-0.5 font-mono text-[10px] font-bold text-ink-faint">
-                    v{team.activeVersion.versionNumber}
-                  </span>
                 </span>
                 <span className="mt-1.5 flex items-center gap-1.5 text-[11px] text-ink-faint">
                   <UsersRound className="h-3.5 w-3.5" aria-hidden />
@@ -562,10 +509,6 @@ export function TeamSettingsTab({
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2.5">
                 <h2 className="max-w-full truncate font-display text-[28px] font-bold leading-tight text-ink">{selectedTeam.name}</h2>
-                <span className="inline-flex items-center gap-1 rounded-full border border-accent/25 bg-accent/10 px-2.5 py-1 font-mono text-[11px] font-bold text-accent">
-                  <GitBranch className="h-3.5 w-3.5" aria-hidden />
-                  当前版本 v{activeVersion.versionNumber}
-                </span>
                 <span className="inline-flex rounded-full border border-line bg-surface-muted px-2.5 py-1 font-mono text-[11px] font-bold text-ink-faint">
                   {members.length} 成员 · max-A2A {activeVersion.maxA2ADepth ?? 5}
                 </span>
@@ -577,17 +520,6 @@ export function TeamSettingsTab({
                 className="mt-1 max-w-3xl px-0 text-[13px] leading-6 text-ink-soft hover:bg-transparent"
                 onSave={value => saveSelected({ description: value, version: { description: value } })}
               />
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                disabled
-                title="克隆为新 Team"
-                className="inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-line bg-surface px-3 text-[12px] font-bold text-ink-soft opacity-60"
-              >
-                <Copy className="h-3.5 w-3.5" aria-hidden />
-                克隆为新 Team
-              </button>
             </div>
           </div>
 
@@ -613,6 +545,7 @@ export function TeamSettingsTab({
             <section className="mt-4 space-y-2.5">
               {members.map(member => {
                 const memberSkillRefs = getMemberSkillRefs(member, skills)
+                const roleLabel = distinctRoleLabel(member)
                 const availableSkillOptions = skillOptions.filter(option => (
                   isSkillOptionCompatibleWithProvider(option, member.provider)
                   && !new Set(memberSkillRefs.map(skillRefKey)).has(option.key)
@@ -622,49 +555,45 @@ export function TeamSettingsTab({
                 return (
                   <div
                     key={member.id}
-                    className="member-card member-card-refined relative overflow-hidden rounded-[10px] border border-line bg-surface px-4 py-4 shadow-sm"
+                    className="member-card member-card-refined member-card-compact relative overflow-hidden rounded-[10px] border border-line bg-surface px-3 py-2.5 shadow-sm"
                   >
                     <span
-                      className="member-card-accent absolute inset-y-3 left-0 w-[3px] rounded-r-full opacity-85"
+                      className="member-card-accent absolute inset-y-2.5 left-0 w-[3px] rounded-r-full opacity-85"
                       style={{ backgroundColor: color.bg }}
                       aria-hidden
                     />
-                    <div className="grid gap-3.5 pl-0.5 md:grid-cols-[2.75rem_minmax(0,1fr)]">
-                      <AgentAvatar
-                        name={member.name}
-                        color={color.bg}
-                        textColor={color.text}
-                        size={38}
-                        className="mt-0.5 shrink-0 rounded-full ring-2 ring-surface"
-                      />
-                      <div className="min-w-0 flex-1">
-                        <div className="flex min-w-0 flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
-                          <div className="min-w-0">
-                            <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-                              <span className="sr-only">成员名称</span>
-                              <span className="sr-only">成员名称：给这个成员起一个好识别的名字，例如 信息搜集专员、风险审查员。</span>
-                              <div className="min-w-0 max-w-[18rem]">
-                                <EditableText
-                                  value={member.name}
-                                  placeholder="成员名称"
-                                  className="px-0 py-0 text-[14px] font-semibold hover:bg-transparent"
-                                  onSave={value => updateMember(member.id, { name: value })}
-                                />
-                              </div>
-                              <Edit2 className="h-3 w-3 shrink-0 text-ink-faint" aria-hidden />
-                            </div>
-                            <span className="sr-only">角色分工：一句话说明它在 Team 里的身份，例如 信息搜集、方案设计、审查把关。</span>
-                            <div className="mt-1 max-w-[28rem]">
-                              <EditableText
-                                value={member.roleLabel}
-                                placeholder="角色分工"
-                                className="px-0 py-0 text-[11px] text-ink-soft hover:bg-transparent"
-                                onSave={value => updateMember(member.id, { roleLabel: value })}
-                              />
-                            </div>
+                    <div className="flex min-w-0 flex-col gap-2 pl-1">
+                      <div className="flex min-w-0 flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                        <div className="flex min-w-0 items-center gap-2.5">
+                          <AgentAvatar
+                            name={member.name}
+                            color={color.bg}
+                            textColor={color.text}
+                            size={34}
+                            className="shrink-0 rounded-full ring-2 ring-surface"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <EditableText
+                              value={member.name}
+                              placeholder="成员名称"
+                              className="min-h-0 px-0 py-0 text-[13.5px] font-bold hover:bg-transparent"
+                              onSave={value => updateMember(member.id, { name: value })}
+                            />
+                            <EditableText
+                              value={member.roleLabel}
+                              placeholder="角色分工"
+                              displayLabel={roleLabel || '未设置角色分工'}
+                              className="min-h-0 px-0 py-0 text-[11px] text-ink-soft hover:bg-transparent"
+                              onSave={value => updateMember(member.id, { roleLabel: value })}
+                            />
                           </div>
-                          <div className="member-toolbar member-action-bar flex shrink-0 items-center">
-                            <span className="sr-only">执行工具：选择这个成员实际调用哪个 CLI 工具，例如 OpenCode 或 Codex CLI。</span>
+                        </div>
+                        <div className="member-toolbar member-action-bar flex shrink-0 items-center gap-2">
+                          <span className={`rounded-md border px-1.5 py-0.5 text-[10px] font-semibold ${
+                            memberSkillRefs.length ? 'border-success/25 bg-success/10 text-success' : 'border-line bg-surface-muted text-ink-faint'
+                          }`}>
+                            Skill {memberSkillRefs.length ? memberSkillRefs.length : '未配置'}
+                          </span>
                             <span className="member-provider-select inline-flex h-8 items-center gap-1.5 rounded-md border border-line bg-surface/70 pl-2 pr-1">
                               <span className="shrink-0 text-[10px] font-bold text-ink-faint">执行工具</span>
                               <CustomSelect<ProviderName>
@@ -677,10 +606,10 @@ export function TeamSettingsTab({
                                 menuClassName="right-auto min-w-[9rem]"
                               />
                             </span>
-                          </div>
                         </div>
+                      </div>
 
-                        <div className="member-field-grid mt-3 grid gap-x-6 gap-y-3 border-t border-line pt-3 lg:grid-cols-2">
+                        <div className="member-quick-fields member-field-grid grid gap-x-2 gap-y-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.2fr)]">
                           <div className="member-field-panel min-w-0">
                             <div className="member-field-label">
                               <FieldLabel help="负责什么：写清楚它主要产出什么，例如 搜集资料、写方案、做审查。">负责什么</FieldLabel>
@@ -691,11 +620,11 @@ export function TeamSettingsTab({
                               multiline
                               alwaysUseDialog
                               longTextDialogTitle="编辑负责什么"
-                              className="mt-1 min-h-[4.75rem] rounded-md border border-line/70 bg-surface/55 px-2.5 py-2 text-[12.5px] leading-5 text-ink-soft hover:border-accent/30 hover:bg-transparent"
+                              className="mt-1 min-h-[2.25rem] rounded-md border border-line/70 bg-surface/55 px-2 py-1 text-[11.5px] leading-4 text-ink-soft hover:border-accent/30 hover:bg-transparent"
                               onSave={value => updateMember(member.id, { responsibility: value })}
                             />
                           </div>
-                          <div className="member-field-panel min-w-0 border-line lg:border-l lg:pl-4">
+                          <div className="member-field-panel min-w-0">
                             <div className="member-field-label">
                               <FieldLabel help="什么时候用它：写清楚什么情况下该找它，例如 用户要查资料时。">什么时候用它</FieldLabel>
                             </div>
@@ -705,11 +634,11 @@ export function TeamSettingsTab({
                               multiline
                               alwaysUseDialog
                               longTextDialogTitle="编辑什么时候用它"
-                              className="mt-1 min-h-[4.75rem] rounded-md border border-line/70 bg-surface/55 px-2.5 py-2 text-[12.5px] leading-5 text-ink-soft hover:border-accent/30 hover:bg-transparent"
+                              className="mt-1 min-h-[2.25rem] rounded-md border border-line/70 bg-surface/55 px-2 py-1 text-[11.5px] leading-4 text-ink-soft hover:border-accent/30 hover:bg-transparent"
                               onSave={value => updateMember(member.id, { whenToUse: value })}
                             />
                           </div>
-                          <div className="member-field-panel role-soul-field min-w-0 border-t border-line pt-3 lg:col-span-2">
+                          <div className="member-field-panel role-soul-field min-w-0">
                             <div className="member-field-label">
                               <FieldLabel help="角色灵魂：给执行工具看的完整工作要求，适合写边界、步骤、输出格式和注意事项。">角色灵魂</FieldLabel>
                             </div>
@@ -721,13 +650,13 @@ export function TeamSettingsTab({
                                 monospace
                                 alwaysUseDialog
                                 longTextDialogTitle="编辑角色灵魂"
-                                className="mt-1 min-h-[4.75rem] rounded-md border border-line/70 bg-surface/55 px-2.5 py-2 text-[12.5px] leading-5 text-ink-soft hover:border-accent/30 hover:bg-transparent focus:ring-2 focus:ring-accent/20"
+                                className="mt-1 min-h-[2.25rem] rounded-md border border-line/70 bg-surface/55 px-2 py-1 text-[11.5px] leading-4 text-ink-soft hover:border-accent/30 hover:bg-transparent focus:ring-2 focus:ring-accent/20"
                                 onSave={value => updateMember(member.id, { systemPrompt: value })}
                               />
                             </div>
                           </div>
 
-                          <div className="member-field-panel relative flex min-w-0 flex-wrap items-center gap-1.5 border-t border-line pt-3 text-[12px] text-ink-soft lg:col-span-3">
+                          <div className="member-field-panel relative flex min-w-0 flex-wrap items-center gap-1.5 text-[12px] text-ink-soft xl:col-span-3">
                               <div className="member-field-label">
                                 <FieldLabel help="Skill：从系统维护或系统扫描到的 Skill 中选择这个成员运行时需要的能力包。">Skill</FieldLabel>
                               </div>
@@ -791,13 +720,12 @@ export function TeamSettingsTab({
                           </div>
                         </div>
                       </div>
-                    </div>
                   </div>
                 )
               })}
             </section>
           ) : activeSubtab === 'rules' ? (
-            <section className="mt-4 space-y-4">
+            <section className="mt-4">
               <div className="rounded-[10px] border border-line bg-nav-bg px-4 py-3.5">
                 <FieldLabel help="这段内容会进入 Team 成员运行时的系统提示，决定团队如何协作、接力和收敛。">团队协作说明</FieldLabel>
                 <EditableText
@@ -810,63 +738,6 @@ export function TeamSettingsTab({
                   onSave={value => saveSelected({ version: { workflowPrompt: value } })}
                 />
               </div>
-
-              <div className="rounded-[10px] border border-line bg-nav-bg px-4 py-3.5">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <FieldLabel help="定义什么情况应该交给哪个角色。生成 Team 时标准格式是 when -> memberRole。">协作路由规则</FieldLabel>
-                    <p className="mt-1 text-[12px] leading-5 text-ink-soft">每条规则描述一个触发条件，以及应该接力给的成员角色。</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => void addRoutingRule()}
-                    className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-dashed border-line bg-surface px-2.5 text-[11px] font-semibold text-ink-soft transition-colors hover:border-accent/40 hover:text-accent"
-                  >
-                    <Plus className="h-3.5 w-3.5" aria-hidden />
-                    添加规则
-                  </button>
-                </div>
-
-                <div className="mt-3 space-y-2.5">
-                  {routingRules.length === 0 ? (
-                    <p className="rounded-lg border border-dashed border-line bg-surface px-3 py-3 text-[12px] text-ink-soft">暂无路由规则。</p>
-                  ) : routingRules.map((rule, index) => (
-                    <div key={`${rule.when}-${rule.memberRole}-${index}`} className="rounded-lg border border-line bg-surface px-3 py-3">
-                      <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(12rem,16rem)_auto] md:items-start">
-                        <div>
-                          <FieldLabel>触发条件</FieldLabel>
-                          <EditableText
-                            value={rule.when}
-                            placeholder="例如：需求不清时"
-                            multiline
-                            longTextDialogTitle="编辑触发条件"
-                            className="mt-0.5 px-0 text-[12.5px] leading-5 hover:bg-transparent"
-                            onSave={value => updateRoutingRule(index, { when: value })}
-                          />
-                        </div>
-                        <div>
-                          <FieldLabel>交给角色</FieldLabel>
-                          <EditableText
-                            value={rule.memberRole}
-                            placeholder="例如：需求澄清"
-                            className="mt-0.5 px-0 text-[12.5px] leading-5 hover:bg-transparent"
-                            onSave={value => updateRoutingRule(index, { memberRole: value })}
-                          />
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => void removeRoutingRule(index)}
-                          className="inline-flex h-8 items-center gap-1 self-start rounded-lg px-2 text-[11px] font-semibold text-[color:var(--danger)] transition-colors hover:bg-[color:var(--danger)]/8"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" aria-hidden />
-                          删除
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
             </section>
           ) : activeSubtab === 'memory' ? (
             <section className="mt-4 rounded-[10px] border border-line bg-nav-bg px-4 py-3.5">

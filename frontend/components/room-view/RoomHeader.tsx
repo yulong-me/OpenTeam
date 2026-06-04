@@ -10,7 +10,6 @@ interface RoomHeaderProps {
   currentRoomTopic?: string
   isTeamRoom?: boolean
   teamName?: string
-  teamVersionNumber?: number
   maxA2ADepth: number | null
   currentA2ADepth: number
   displayMaxDepth: number
@@ -36,7 +35,6 @@ export function RoomHeader({
   currentRoomTopic,
   isTeamRoom = false,
   teamName,
-  teamVersionNumber,
   maxA2ADepth,
   currentA2ADepth,
   displayMaxDepth,
@@ -165,9 +163,9 @@ export function RoomHeader({
 
   return (
     <div
-      className="h-[60px] md:h-16 layer-sticky-header bg-bg border-b border-line px-4 md:px-6 flex items-center justify-between sticky top-0"
+      className="desktop-titlebar-drag h-[60px] md:h-[var(--desktop-titlebar-height)] layer-sticky-header bg-bg border-b border-line px-4 md:px-6 flex items-center justify-between sticky top-0"
     >
-      <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+      <div className="desktop-titlebar-no-drag flex min-w-0 items-center gap-2 sm:gap-3">
         <button
           type="button"
           className="md:hidden -ml-2 inline-flex h-9 w-9 items-center justify-center rounded-lg text-ink-soft hover:bg-surface-muted hover:text-ink"
@@ -232,7 +230,7 @@ export function RoomHeader({
               >
                 {headerTitle}
               </button>
-              {roomId && teamName && teamVersionNumber && (
+              {roomId && teamName && (
                 <button
                   type="button"
                   onClick={onOpenTeamSettings}
@@ -242,7 +240,6 @@ export function RoomHeader({
                   className="mt-0.5 flex max-w-full items-center gap-1.5 truncate text-[10.5px] text-ink-faint transition-colors hover:text-accent disabled:cursor-default disabled:hover:text-ink-faint sm:hidden"
                 >
                   {teamName}
-                  <span className="rounded-full border border-line bg-surface-muted px-1.5 py-0.5 font-mono text-[10px]">v{teamVersionNumber}</span>
                 </button>
               )}
             </div>
@@ -288,7 +285,7 @@ export function RoomHeader({
             </div>
           )}
         </div>
-        {teamName && teamVersionNumber && (
+        {teamName && (
           <button
             type="button"
             onClick={onOpenTeamSettings}
@@ -297,11 +294,11 @@ export function RoomHeader({
             title="编辑 Team"
             className="hidden shrink-0 rounded-full border border-line bg-surface-muted px-2.5 py-1 text-[11px] font-semibold text-ink-soft transition-colors hover:border-accent/35 hover:bg-surface hover:text-accent disabled:cursor-default disabled:hover:border-line disabled:hover:bg-surface-muted disabled:hover:text-ink-soft sm:inline-flex"
           >
-            {teamName} · v{teamVersionNumber}
+            {teamName}
           </button>
         )}
       </div>
-      <div className="flex items-center gap-2">
+      <div className="desktop-titlebar-no-drag flex items-center gap-2">
         {roomId && (
           <>
             <div

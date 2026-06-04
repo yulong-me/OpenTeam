@@ -205,6 +205,8 @@ function createWindow() {
     minWidth: 980,
     minHeight: 680,
     title: `OpenTeam ${app.getVersion()}`,
+    titleBarStyle: 'hiddenInset',
+    trafficLightPosition: { x: 24, y: 24 },
     backgroundColor: '#f7f4ef',
     webPreferences: {
       contextIsolation: true,

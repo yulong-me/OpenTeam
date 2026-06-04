@@ -128,11 +128,6 @@ function normalizeTeamMemory(value: unknown, fallback: string[]): string[] {
     .filter(Boolean);
 }
 
-function normalizeRoutingPolicy(value: unknown, fallback: Record<string, unknown>): Record<string, unknown> {
-  if (!isRecord(value)) return fallback;
-  return sanitizeStructuredValue(value);
-}
-
 function normalizeMemberSkillIds(value: unknown, fallback: string[] = []): string[] {
   if (!Array.isArray(value)) return fallback;
   const skillIds = Array.from(new Set(value
@@ -262,9 +257,6 @@ export function assertDraft(draft: unknown): asserts draft is TeamDraft {
   requireNonEmptyString(draft.workflow, 'workflow');
   requireNonEmptyString(draft.teamProtocol, 'teamProtocol');
   requireNonEmptyString(draft.generationRationale, 'generationRationale');
-  if (!isRecord(draft.routingPolicy)) {
-    throw new TeamRepoError('TEAM_DRAFT_INVALID', 'Team draft requires routingPolicy');
-  }
   if (!Array.isArray(draft.teamMemory)) {
     throw new TeamRepoError('TEAM_DRAFT_INVALID', 'Team draft requires teamMemory');
   }
@@ -350,14 +342,6 @@ function buildDraft(goal: string): TeamDraft {
       ],
       workflow: '1. 澄清目标和验收标准\n2. 拆解方案和风险\n3. 实现最小可行改动\n4. Review 行为和回归风险\n5. 修复问题并运行验证\n6. 汇报用户可验证变化、验证命令和剩余风险',
       teamProtocol: '成员交接必须说明 What / Why / Tradeoff / Open Questions / Next Action。范围变化、不可逆操作、外部发布或合并动作必须等待用户确认。',
-      routingPolicy: {
-        rules: [
-          { when: '需求或验收标准不明确', memberRole: '需求澄清' },
-          { when: '需要方案和风险判断', memberRole: '方案设计' },
-          { when: '需要修改代码或运行验证', memberRole: '实现' },
-          { when: '需要质量检查或交付前把关', memberRole: '审查' },
-        ],
-      },
       teamMemory: ['交付必须包含验证证据。', '先确认边界，再做不可逆操作。'],
       validationCases: [
         {
@@ -397,11 +381,6 @@ function buildDraft(goal: string): TeamDraft {
       ],
       workflow: '1. 明确研究问题\n2. 梳理事实和证据\n3. 建立分析框架\n4. 形成机会判断\n5. 输出行动计划和验证方式',
       teamProtocol: '结论必须区分事实、推断和建议；高不确定性判断必须标注假设并请求用户确认边界。',
-      routingPolicy: { rules: [
-        { when: '缺少事实材料', memberRole: '资料梳理' },
-        { when: '需要趋势或机会判断', memberRole: '结构分析' },
-        { when: '需要落地计划', memberRole: '行动建议' },
-      ] },
       teamMemory: ['事实、推断和建议必须分开表达。'],
       validationCases: [
         { title: '事实推断分离', failureSummary: '把推断说成事实', inputSnapshot: { goal }, expectedBehavior: '输出区分事实、推断和建议', assertionType: 'checklist' },
@@ -422,11 +401,6 @@ function buildDraft(goal: string): TeamDraft {
       ],
       workflow: '1. 明确读者和目标\n2. 梳理素材\n3. 搭建结构\n4. 写正文\n5. 审稿并收敛',
       teamProtocol: '保留用户原意，修改语气或立场前必须请求用户确认。',
-      routingPolicy: { rules: [
-        { when: '需要素材', memberRole: '资料整理' },
-        { when: '需要正文', memberRole: '正文写作' },
-        { when: '需要修改质量', memberRole: '审稿优化' },
-      ] },
       teamMemory: ['保留用户原意，不擅自扩写立场。'],
       validationCases: [
         { title: '保留原意', failureSummary: '写作偏离用户原意', inputSnapshot: { goal }, expectedBehavior: '修改保留用户原意和目标读者', assertionType: 'checklist' },
@@ -446,11 +420,6 @@ function buildDraft(goal: string): TeamDraft {
     ],
     workflow: '1. 澄清目标\n2. 拆方案\n3. 执行\n4. 验证\n5. 汇报',
     teamProtocol: '不确定或高影响操作必须请求用户确认；交付必须包含结果和验证证据。',
-    routingPolicy: { rules: [
-      { when: '目标不清', memberRole: '目标澄清' },
-      { when: '需要方案', memberRole: '方案设计' },
-      { when: '需要执行', memberRole: '执行交付' },
-    ] },
     teamMemory: ['先澄清边界，再执行。'],
     validationCases: [
       { title: '目标清晰度', failureSummary: '目标模糊时直接执行', inputSnapshot: { goal }, expectedBehavior: '目标模糊时先请求补充边界和交付物', assertionType: 'checklist' },
@@ -544,7 +513,7 @@ export const teamsRepo = {
       memberIds: memberSnapshots.map(member => member.id),
       memberSnapshots,
       workflowPrompt: sanitizeGeneratedText([draft.mission, draft.workflow, draft.teamProtocol].join('\n\n')),
-      routingPolicy: sanitizeStructuredValue(draft.routingPolicy),
+      routingPolicy: {},
       teamMemory: draft.teamMemory.map(item => sanitizeGeneratedText(item)).filter(Boolean),
       maxA2ADepth: 5,
       createdAt: now,
@@ -682,7 +651,6 @@ export const teamsRepo = {
     const nextWorkflowPrompt = typeof versionPatch.workflowPrompt === 'string' && versionPatch.workflowPrompt.trim()
       ? sanitizeGeneratedText(versionPatch.workflowPrompt)
       : version.workflowPrompt;
-    const nextRoutingPolicy = normalizeRoutingPolicy(versionPatch.routingPolicy, version.routingPolicy);
     const nextTeamMemory = normalizeTeamMemory(versionPatch.teamMemory, version.teamMemory);
     const nextMaxA2ADepth = normalizePositiveInteger(versionPatch.maxA2ADepth, version.maxA2ADepth);
 
@@ -715,7 +683,7 @@ export const teamsRepo = {
         memberIdsJson: JSON.stringify(nextMemberSnapshots.map(member => member.id)),
         memberSnapshotsJson: JSON.stringify(nextMemberSnapshots),
         workflowPrompt: nextWorkflowPrompt,
-        routingPolicyJson: JSON.stringify(nextRoutingPolicy),
+        routingPolicyJson: JSON.stringify(version.routingPolicy),
         teamMemoryJson: JSON.stringify(nextTeamMemory),
         maxA2ADepth: nextMaxA2ADepth,
       });

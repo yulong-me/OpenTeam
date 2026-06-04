@@ -1,6 +1,7 @@
 import { v4 as uuid } from 'uuid';
 import { db } from '../db.js';
 import { teamsRepo } from './teams.js';
+import { roomsRepo } from './rooms.js';
 import type {
   EvolutionChangeDecision,
   EvolutionChangeKind,
@@ -333,11 +334,6 @@ function applyChangeToVersion(version: TeamVersionConfig, change: EvolutionPropo
       }
       return;
     }
-    case 'edit-routing-policy': {
-      const after = asRecord(change.after);
-      version.routingPolicy = asRecord(after.routingPolicy ?? change.after);
-      return;
-    }
     case 'add-team-memory': {
       const additions = asStringArray(change.after);
       const existing = new Set(version.teamMemory);
@@ -551,6 +547,8 @@ const mergeTransaction = db.transaction((proposalId: string, options?: { confirm
     appliedVersionId: nextVersion.id,
     updatedAt: now,
   });
+
+  roomsRepo.rebindTeamVersion(proposal.roomId, nextVersion);
 
   return {
     proposal: getProposal(proposal.id)!,

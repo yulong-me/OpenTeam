@@ -84,6 +84,8 @@ assert.doesNotMatch(mainSource, /ELECTRON_RUN_AS_NODE/, 'desktop launcher must n
 assert.match(mainSource, /openteamApi/, 'desktop window must pass the internal API protocol to the frontend');
 assert.match(mainSource, /openteam-app:\/\/local\//, 'desktop window must load the frontend through the app protocol');
 assert.match(mainSource, /loadURL\(frontendUrl\.toString\(\)\)/, 'desktop window must load the frontend directly');
+assert.match(mainSource, /titleBarStyle:\s*'hiddenInset'/, 'macOS desktop window must hide the native title bar so traffic lights integrate with the app chrome');
+assert.match(mainSource, /trafficLightPosition:\s*\{\s*x:\s*24,\s*y:\s*24\s*\}/, 'macOS traffic lights must align with the app island spacing instead of floating in a separate title strip');
 assert.match(mainSource, /mainWindow\.on\('closed'/, 'desktop launcher must clear destroyed window references');
 assert.match(mainSource, /!mainWindow\.isDestroyed\(\)/, 'desktop launcher must not reuse destroyed windows');
 assert.match(mainSource, /app\.on\('before-quit'/, 'desktop launcher must still track intentional app shutdown');

@@ -32,7 +32,7 @@ function getTaskTitle(room: SidebarRoom): string {
 
 function getTaskTeamLabel(room: SidebarRoom): string {
   if (room.teamName) {
-    return room.teamVersionNumber ? `${room.teamName} · v${room.teamVersionNumber}` : room.teamName
+    return room.teamName
   }
   return `${room.agentCount} 位成员`
 }
@@ -82,7 +82,7 @@ interface RoomListSidebarProps {
 
 function SidebarBrand() {
   return (
-    <div className="flex min-w-0 items-center gap-2.5">
+    <div className="desktop-titlebar-no-drag flex min-w-0 items-center gap-2.5">
       <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-ink text-surface shadow-sm">
         <Network className="h-3.5 w-3.5" aria-hidden />
       </span>
@@ -777,7 +777,6 @@ function SidebarSystemControls({
         title="打开设置"
       >
         <UserCircle className="h-5 w-5 shrink-0" />
-        <span className="truncate text-caption">本机工作区</span>
       </button>
       {mounted && (
         <button
@@ -864,12 +863,12 @@ export function RoomListSidebarDesktop({
             <GripVertical className="h-4 w-4 rounded-full bg-bg" />
           </button>
           <div className="app-islands-panel oc-rail-panel flex h-full flex-col border-r border-line">
-            <div className="shrink-0 border-b border-line px-4 py-3">
-              <div className="flex items-center gap-2">
-                <SidebarBrand />
-              </div>
-            </div>
-            <div className="custom-scrollbar flex-1 overflow-y-auto p-3">
+            <div
+              className="desktop-titlebar-drag h-[var(--desktop-titlebar-height)] shrink-0 border-b border-line pl-[88px] pr-4"
+              data-testid="desktop-titlebar-spacer"
+              aria-hidden="true"
+            />
+            <div className="custom-scrollbar flex-1 overflow-y-auto p-3 pt-[var(--desktop-titlebar-height)] md:pt-3">
               <SidebarConversationSection
                 rooms={rooms}
                 currentRoomId={currentRoomId}

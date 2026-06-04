@@ -1,6 +1,7 @@
 import { Router, type Response } from 'express';
-import { evolutionRepo, teamsRepo } from '../db/index.js';
+import { evolutionRepo, roomsRepo, teamsRepo } from '../db/index.js';
 import { generateTeamDraftFromGoal } from '../services/teamDrafts.js';
+import { store } from '../store.js';
 
 export const teamsRouter = Router();
 
@@ -104,6 +105,18 @@ teamsRouter.post('/evolution-proposals/:proposalId/merge', (req, res) => {
     const result = evolutionRepo.merge(req.params.proposalId, {
       confirmFailedValidation: req.body?.confirmFailedValidation === true,
     });
+    if (result.version) {
+      const syncedRoom = roomsRepo.get(result.proposal.roomId);
+      if (syncedRoom) {
+        store.update(syncedRoom.id, {
+          agents: syncedRoom.agents,
+          teamId: syncedRoom.teamId,
+          teamVersionId: syncedRoom.teamVersionId,
+          teamName: syncedRoom.teamName,
+          teamVersionNumber: syncedRoom.teamVersionNumber,
+        });
+      }
+    }
     return res.json(result);
   } catch (err) {
     return sendEvolutionError(res, err, 'Failed to merge evolution proposal');

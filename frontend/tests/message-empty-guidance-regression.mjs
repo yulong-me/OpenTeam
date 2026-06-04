@@ -17,7 +17,7 @@ assert.match(source, /目标：减少散热 if\/else 嵌套/)
 assert.match(source, /后续接力会在房间里可见/)
 assert.match(source, /\$\{teamName \?\? '当前 Team'\}/)
 assert.match(roomViewSource, /teamId=\{teamId\}/)
-assert.match(roomViewSource, /teamName=\{teamName\}/)
+assert.match(roomViewSource, /teamName=\{displayTeamName\}/)
 
 const customGuidanceBranch = source.slice(
   source.indexOf(": `${teamName ?? '当前 Team'}"),

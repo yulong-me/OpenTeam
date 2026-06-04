@@ -106,7 +106,6 @@ export default function RoomView({ roomId, defaultCreateOpen = false }: RoomView
   const [teamLabelOverride, setTeamLabelOverride] = useState<{
     teamId: string
     name?: string
-    versionNumber?: number
   } | null>(null)
 
   const { theme, resolvedTheme, setTheme } = useTheme()
@@ -131,7 +130,6 @@ export default function RoomView({ roomId, defaultCreateOpen = false }: RoomView
     teamId,
     teamVersionId,
     teamName,
-    teamVersionNumber,
     effectiveSkills,
     globalSkillCount,
     workspaceDiscoveredCount,
@@ -139,7 +137,6 @@ export default function RoomView({ roomId, defaultCreateOpen = false }: RoomView
   } = useRoomRealtime({ roomId: activeRoomId, queuedDispatchPendingRef })
   const activeTeamLabelOverride = teamLabelOverride?.teamId === teamId ? teamLabelOverride : null
   const displayTeamName = activeTeamLabelOverride?.name ?? teamName
-  const displayTeamVersionNumber = activeTeamLabelOverride?.versionNumber ?? teamVersionNumber
   const {
     sending,
     sendError,
@@ -329,12 +326,10 @@ export default function RoomView({ roomId, defaultCreateOpen = false }: RoomView
   }, [activeRoomId, openSystemSettings, teamId])
 
   const handleSettingsTeamUpdated = useCallback((updated: TeamListItem) => {
-    const versionNumber = updated.activeVersion?.versionNumber
     setRooms(previous => previous.map(room => room.teamId === updated.id
       ? {
           ...room,
           teamName: updated.name,
-          teamVersionNumber: versionNumber ?? room.teamVersionNumber,
         }
       : room,
     ))
@@ -342,7 +337,6 @@ export default function RoomView({ roomId, defaultCreateOpen = false }: RoomView
       setTeamLabelOverride({
         teamId: updated.id,
         name: updated.name,
-        versionNumber,
       })
     }
   }, [setRooms, teamId])
@@ -667,7 +661,6 @@ export default function RoomView({ roomId, defaultCreateOpen = false }: RoomView
             currentRoomTopic={currentRoomTopic}
             isTeamRoom={Boolean(teamId && teamVersionId)}
             teamName={displayTeamName}
-            teamVersionNumber={displayTeamVersionNumber}
             maxA2ADepth={maxA2ADepth}
             currentA2ADepth={currentA2ADepth}
             displayMaxDepth={displayMaxDepth}
@@ -766,7 +759,6 @@ export default function RoomView({ roomId, defaultCreateOpen = false }: RoomView
             roomId={activeRoomId}
             agents={agents}
             teamName={displayTeamName}
-            teamVersionNumber={displayTeamVersionNumber}
             workspace={workspace}
             skillSummary={{
               effectiveSkills,
@@ -800,7 +792,6 @@ export default function RoomView({ roomId, defaultCreateOpen = false }: RoomView
           error={evolutionError}
           creating={creatingEvolutionProposal}
           teamName={displayTeamName}
-          currentVersionNumber={displayTeamVersionNumber}
           busyAgents={busyAgents}
           stoppingAndSubmitting={stoppingForEvolution}
           onDraftChange={setEvolutionFeedbackDraft}
@@ -814,7 +805,6 @@ export default function RoomView({ roomId, defaultCreateOpen = false }: RoomView
         <EvolutionReviewModal
           proposal={activeEvolutionProposal}
           teamName={displayTeamName}
-          currentVersionNumber={displayTeamVersionNumber}
           decidingChangeId={decidingEvolutionChangeId}
           merging={mergingEvolutionProposal}
           rejecting={rejectingEvolutionProposal}

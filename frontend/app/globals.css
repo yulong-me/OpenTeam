@@ -11,6 +11,7 @@
     --islands-item-radius: 6px;
     --islands-panel-gap: 8px;
     --islands-panel-top: 8px;
+    --desktop-titlebar-height: 52px;
     --islands-bg-canvas: var(--bg);
     --islands-bg-surface: var(--surface);
     background-color: var(--bg) !important;
@@ -312,6 +313,15 @@ textarea {
 .app-islands-panel > :last-child {
   border-bottom-left-radius: inherit;
   border-bottom-right-radius: inherit;
+}
+
+.desktop-titlebar-drag {
+  -webkit-app-region: drag;
+}
+
+.desktop-titlebar-no-drag,
+.desktop-titlebar-drag :is(button, a, input, textarea, select, [role="button"], [data-titlebar-no-drag="true"]) {
+  -webkit-app-region: no-drag;
 }
 
 .app-islands-widget {

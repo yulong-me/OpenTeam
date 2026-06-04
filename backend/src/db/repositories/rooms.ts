@@ -1,5 +1,5 @@
 import { db } from '../db.js';
-import type { DiscussionRoom, Message, TeamVersionMemberSnapshot } from '../../types.js';
+import type { DiscussionRoom, Message, TeamVersionConfig, TeamVersionMemberSnapshot } from '../../types.js';
 import { agentsRepo } from './agents.js';
 import { sessionsRepo } from './sessions.js';
 import { v4 as uuid } from 'uuid';
@@ -152,6 +152,26 @@ export const roomsRepo = {
         : (existing.agent_ids as string),
       updatedAt: Date.now(),
       maxA2ADepth: partial.maxA2ADepth !== undefined ? partial.maxA2ADepth : (existing.max_a2a_depth as number | null),
+    });
+    return this.get(id);
+  },
+
+  rebindTeamVersion(id: string, version: TeamVersionConfig): DiscussionRoom | undefined {
+    const existing = db.prepare('SELECT * FROM rooms WHERE id = ?').get(id) as Record<string, unknown> | undefined;
+    if (!existing) return undefined;
+    db.prepare(`
+      UPDATE rooms SET
+        team_id = @teamId,
+        team_version_id = @teamVersionId,
+        agent_ids = @agentIds,
+        updated_at = @updatedAt
+      WHERE id = @id
+    `).run({
+      id,
+      teamId: version.teamId,
+      teamVersionId: version.id,
+      agentIds: JSON.stringify(version.memberIds),
+      updatedAt: Date.now(),
     });
     return this.get(id);
   },

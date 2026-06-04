@@ -10,7 +10,8 @@ const roomActionArea = readFileSync(resolve(root, 'components/room-view/RoomActi
 const roomComposer = readFileSync(resolve(root, 'components/RoomComposer.tsx'), 'utf8')
 const depthSwitcher = readFileSync(resolve(root, 'components/room-view/DepthSwitcher.tsx'), 'utf8')
 
-assert.match(roomHeader, /sm:hidden[\s\S]*teamName[\s\S]*teamVersionNumber/)
+assert.match(roomHeader, /sm:hidden[\s\S]*teamName/)
+assert.doesNotMatch(roomHeader, /teamVersionNumber/)
 assert.match(roomHeader, /md:hidden -ml-2 inline-flex h-9 w-9/)
 assert.match(roomHeader, /inline-flex items-center gap-1 md:hidden/)
 assert.match(roomHeader, /mobileTaskButtonClassName/)

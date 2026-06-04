@@ -275,7 +275,6 @@ export interface TeamDraft {
   members: TeamDraftMember[];
   workflow: string;
   teamProtocol: string;
-  routingPolicy: Record<string, unknown>;
   teamMemory: string[];
   validationCases: TeamDraftValidationCase[];
   generationRationale: string;
@@ -291,7 +290,6 @@ export interface TeamSettingsPatch {
     description?: string;
     memberSnapshots?: TeamVersionMemberSnapshot[];
     workflowPrompt?: string;
-    routingPolicy?: Record<string, unknown>;
     teamMemory?: string[];
     maxA2ADepth?: number;
   };
@@ -302,7 +300,6 @@ export type EvolutionChangeKind =
   | 'add-agent'
   | 'edit-agent-prompt'
   | 'edit-team-workflow'
-  | 'edit-routing-policy'
   | 'add-team-memory'
   | 'add-validation-case';
 export type EvolutionChangeDecision = 'accepted' | 'rejected';

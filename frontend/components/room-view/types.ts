@@ -27,7 +27,6 @@ export type EvolutionChangeKind =
   | 'add-agent'
   | 'edit-agent-prompt'
   | 'edit-team-workflow'
-  | 'edit-routing-policy'
   | 'add-team-memory'
   | 'add-validation-case'
 export type EvolutionChangeDecision = 'accepted' | 'rejected'

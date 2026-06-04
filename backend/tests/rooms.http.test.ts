@@ -23,7 +23,7 @@ vi.mock('../src/store.js', () => ({
 }));
 
 vi.mock('../src/db/index.js', () => ({
-  roomsRepo: { create: vi.fn(), update: vi.fn(), listSidebar: vi.fn() },
+  roomsRepo: { create: vi.fn(), get: vi.fn(), update: vi.fn(), listSidebar: vi.fn() },
   agentRunsRepo: {
     listByRoom: vi.fn(),
     getDetail: vi.fn(),
@@ -1300,11 +1300,40 @@ describe('F015: HTTP POST /api/rooms/:id/messages — 409 ROOM_BUSY', () => {
         createdFrom: 'evolution-pr',
       },
     });
+    vi.mocked(roomsRepo.get).mockReturnValue({
+      id: 'room-team',
+      topic: '实现登录态',
+      state: 'RUNNING',
+      agents: [{
+        id: 'agent-runtime-1',
+        role: 'WORKER',
+        name: 'Reviewer',
+        domainLabel: 'Review',
+        status: 'idle',
+        configId: 'reviewer',
+      }],
+      messages: [],
+      sessionIds: [],
+      sessionTelemetryByAgent: {},
+      teamId: 'software-development',
+      teamVersionId: 'software-development-v2',
+      teamVersionNumber: 2,
+      teamName: '软件开发团队',
+      createdAt: 1,
+      updatedAt: 2,
+      a2aDepth: 0,
+      a2aCallChain: [],
+      maxA2ADepth: 5,
+    });
 
     const result = await requestJson('POST', '/api/teams/evolution-proposals/evo-1/merge');
 
     expect(result.status).toBe(200);
     expect(evolutionRepo.merge).toHaveBeenCalledWith('evo-1', { confirmFailedValidation: false });
+    expect(store.update).toHaveBeenCalledWith('room-team', expect.objectContaining({
+      teamVersionId: 'software-development-v2',
+      agents: expect.arrayContaining([expect.objectContaining({ configId: 'reviewer' })]),
+    }));
     expect(result.data).toMatchObject({
       proposal: { id: 'evo-1', status: 'applied', appliedVersionId: 'software-development-v2' },
       version: { id: 'software-development-v2', versionNumber: 2 },

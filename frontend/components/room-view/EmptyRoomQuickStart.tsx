@@ -295,7 +295,7 @@ export function EmptyRoomQuickStart({
                   <span className="min-w-0">
                     <span className="block truncate text-[13px] font-bold text-ink">{room.topic}</span>
                     <span className="mt-0.5 block truncate text-[11px] text-ink-soft">
-                      {room.teamName}{room.teamVersionNumber ? ` · v${room.teamVersionNumber}` : ''} · {room.agentCount} 成员
+                      {room.teamName} · {room.agentCount} 成员
                     </span>
                   </span>
                   <HomeAvatarStack count={room.agentCount} dataAttribute="room" />

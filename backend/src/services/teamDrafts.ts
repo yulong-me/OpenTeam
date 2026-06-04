@@ -67,7 +67,6 @@ const TEAM_DRAFT_SCHEMA = {
     'members',
     'workflow',
     'teamProtocol',
-    'routingPolicy',
     'teamMemory',
     'validationCases',
     'generationRationale',
@@ -94,24 +93,6 @@ const TEAM_DRAFT_SCHEMA = {
     },
     workflow: { type: 'string' },
     teamProtocol: { type: 'string' },
-    routingPolicy: {
-      type: 'object',
-      required: ['rules'],
-      properties: {
-        rules: {
-          type: 'array',
-          minItems: 1,
-          items: {
-            type: 'object',
-            required: ['when', 'memberRole'],
-            properties: {
-              when: { type: 'string' },
-              memberRole: { type: 'string' },
-            },
-          },
-        },
-      },
-    },
     teamMemory: { type: 'array', items: { type: 'string' } },
     validationCases: {
       type: 'array',
@@ -248,7 +229,6 @@ function buildArchitectPrompt(goal: string): string {
     '- 如果目标包含视频脚本/PPT/配音/分镜，必须有视频导演或脚本导演角色。',
     '- 如果目标包含 Remotion/生成视频/输出视频路径，必须有 Remotion 或视频生成角色。',
     '- workflow 必须按用户目标的阶段顺序写，不能只写“梳理素材、写正文、审稿”。',
-    '- routingPolicy 必须使用 { "rules": [{ "when": "...", "memberRole": "..." }] }，不要使用 transitionRules、stateMachine、defaultRoute。',
     'validationCases[].assertionType 只能使用 checklist 或 replay；不确定时使用 checklist。',
     'TeamDraft 输出 JSON Schema：',
     JSON.stringify(TEAM_DRAFT_SCHEMA, null, 2),
@@ -485,14 +465,6 @@ function assertAgentTeamDraftContract(draft: TeamDraft): void {
     || !requireText(draft.generationRationale)
   ) {
     throw new TeamDraftAgentOutputError();
-  }
-  if (!isRecord(draft.routingPolicy) || !Array.isArray(draft.routingPolicy.rules) || draft.routingPolicy.rules.length < 1) {
-    throw new TeamDraftAgentOutputError();
-  }
-  for (const rule of draft.routingPolicy.rules) {
-    if (!isRecord(rule) || !requireText(rule.when) || !requireText(rule.memberRole)) {
-      throw new TeamDraftAgentOutputError();
-    }
   }
   if (!Array.isArray(draft.validationCases) || draft.validationCases.length < 1) {
     throw new TeamDraftAgentOutputError();

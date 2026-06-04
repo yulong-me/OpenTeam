@@ -56,7 +56,6 @@ export interface TeamListItem {
       skillRefs?: TeamMemberSkillRef[]
     }>
     workflowPrompt?: string
-    routingPolicy?: Record<string, unknown>
     teamMemory?: string[]
     maxA2ADepth: number
   }

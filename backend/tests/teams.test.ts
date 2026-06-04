@@ -397,7 +397,6 @@ describe('F055: goal-to-team draft and confirmation', () => {
     });
     expect(draft.workflow).toContain('验证');
     expect(draft.teamProtocol).toContain('用户确认');
-    expect(draft.routingPolicy).toHaveProperty('rules');
     expect(draft.teamMemory.length).toBeGreaterThan(0);
     expect(draft.validationCases).toHaveLength(3);
     expect(draft.generationRationale).toContain('目标');
@@ -508,7 +507,6 @@ describe('F055: goal-to-team draft and confirmation', () => {
         description: '点击编辑后自动保存',
         version: {
           workflowPrompt: '先澄清，再实现，最后检查。',
-          routingPolicy: { rules: ['需求不清 -> 需求澄清成员'] },
           teamMemory: ['交付前必须说明验证证据'],
           maxA2ADepth: 3,
           memberSnapshots: memberSnapshots.map((member, index) => index === 0
@@ -538,7 +536,7 @@ describe('F055: goal-to-team draft and confirmation', () => {
         id: version.id,
         versionNumber: 1,
         workflowPrompt: '先澄清，再实现，最后检查。',
-        routingPolicy: { rules: ['需求不清 -> 需求澄清成员'] },
+        routingPolicy: {},
         teamMemory: ['交付前必须说明验证证据'],
         maxA2ADepth: 3,
       });
@@ -554,7 +552,7 @@ describe('F055: goal-to-team draft and confirmation', () => {
       const persistedVersion = db.prepare('SELECT workflow_prompt, routing_policy_json, team_memory_json, max_a2a_depth, member_snapshots_json FROM team_versions WHERE id = ?').get(version.id as string) as Record<string, unknown>;
       expect(persistedTeam.name).toBe('可配置软件开发 Team');
       expect(persistedVersion.workflow_prompt).toBe('先澄清，再实现，最后检查。');
-      expect(JSON.parse(persistedVersion.routing_policy_json as string)).toEqual({ rules: ['需求不清 -> 需求澄清成员'] });
+      expect(JSON.parse(persistedVersion.routing_policy_json as string)).toEqual({});
       expect(JSON.parse(persistedVersion.team_memory_json as string)).toEqual(['交付前必须说明验证证据']);
       expect(persistedVersion.max_a2a_depth).toBe(3);
       expect(JSON.parse(persistedVersion.member_snapshots_json as string)[0].name).toBe('需求澄清成员');
@@ -765,7 +763,6 @@ describe('F055: goal-to-team draft and confirmation', () => {
       ...draft,
       workflow: '',
       teamProtocol: '',
-      routingPolicy: undefined,
       validationCases: [{
         title: '坏用例',
         failureSummary: '',
@@ -1064,14 +1061,6 @@ describe('F056: Team Draft Agent', () => {
       ],
       workflow: '1. 明确目标市场和约束\n2. 研究趋势和需求\n3. 分析竞品和价格\n4. 评估供应链履约\n5. 建模利润和风险\n6. 输出选品建议',
       teamProtocol: '事实、假设和建议必须分开；高影响采购、投放或发布动作必须请求用户确认。',
-      routingPolicy: {
-        rules: [
-          { when: '需要选品方向', memberRole: '市场趋势' },
-          { when: '需要竞品或价格判断', memberRole: '竞品价格' },
-          { when: '需要履约风险判断', memberRole: '供应链履约' },
-          { when: '需要利润测算', memberRole: '利润模型' },
-        ],
-      },
       teamMemory: ['选品建议必须同时覆盖需求、竞争、供给、利润和合规风险。'],
       validationCases: [
         {
@@ -1269,7 +1258,7 @@ describe('F056: Team Draft Agent', () => {
     expect(draft.members.map(member => member.displayName).join(' ')).not.toMatch(/产品澄清员|架构设计师|实现工程师|Reviewer/);
   });
 
-  it('sends a concise domain-aware prompt and routing rules schema to Team Architect', async () => {
+  it('sends a concise domain-aware prompt and collaboration schema to Team Architect', async () => {
     const { generateTeamDraftFromGoal } = await import('../src/services/teamDrafts.js');
     const goal = [
       '小红书团队',
@@ -1285,11 +1274,11 @@ describe('F056: Team Draft Agent', () => {
     const input = agentClient.generateDraft.mock.calls[0]?.[0];
     expect(input.prompt).toContain('不要套用通用内容创作团队');
     expect(input.prompt).toContain('如果目标包含 Remotion/生成视频/输出视频路径');
-    expect(input.prompt).toContain('routingPolicy 必须使用');
     expect(input.prompt).toContain('TeamDraft 输出 JSON Schema');
     expect(input.prompt).toContain('"displayName"');
     expect(input.prompt).toContain('"generationRationale"');
-    expect(input.schema.properties.routingPolicy.properties.rules.items.required).toEqual(['when', 'memberRole']);
+    expect(input.schema.required).toEqual(expect.not.arrayContaining(['routingPolicy']));
+    expect(input.schema.properties).not.toHaveProperty('routingPolicy');
   });
 
   it('fails instead of falling back when the Team Architect returns non-JSON output', async () => {
@@ -1309,24 +1298,6 @@ describe('F056: Team Draft Agent', () => {
     const goal = '帮我做跨境电商选品团队，覆盖市场、竞品、供应链和利润';
     const invalidDraft = ecommerceAgentDraft(goal);
     invalidDraft.members = invalidDraft.members.slice(0, 1);
-    const agentClient = {
-      generateDraft: vi.fn().mockResolvedValue(JSON.stringify(invalidDraft)),
-    };
-
-    await expectDraftGenerationFailure(generateTeamDraftFromGoal(goal, { agentClient }));
-  });
-
-  it('fails instead of accepting routingPolicy shapes the UI cannot render', async () => {
-    const { generateTeamDraftFromGoal } = await import('../src/services/teamDrafts.js');
-    const goal = '帮我做跨境电商选品团队，覆盖市场、竞品、供应链和利润';
-    const invalidDraft = {
-      ...ecommerceAgentDraft(goal),
-      routingPolicy: {
-        transitionRules: [
-          { from: '市场趋势', to: '竞品价格', condition: '趋势报告完成' },
-        ],
-      },
-    };
     const agentClient = {
       generateDraft: vi.fn().mockResolvedValue(JSON.stringify(invalidDraft)),
     };
@@ -1374,7 +1345,6 @@ describe('F056: Team Draft Agent', () => {
     ['members'],
     ['workflow'],
     ['teamProtocol'],
-    ['routingPolicy'],
     ['teamMemory'],
     ['validationCases'],
   ] as const)('fails instead of falling back when the Team Architect draft is missing top-level %s', async (field) => {

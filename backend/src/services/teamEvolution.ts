@@ -13,7 +13,6 @@ const CHANGE_KINDS: EvolutionChangeKind[] = [
   'add-agent',
   'edit-agent-prompt',
   'edit-team-workflow',
-  'edit-routing-policy',
   'add-team-memory',
   'add-validation-case',
 ];
@@ -47,7 +46,7 @@ const EVOLUTION_PROPOSAL_SCHEMA = {
 const SAFETY_CONSTRAINTS = [
   'generate a proposal only; never merge or apply changes',
   'do not use fixed/template changes; every change must be based on the room evidence and user feedback',
-  'supported change kinds: add-agent, edit-agent-prompt, edit-team-workflow, edit-routing-policy, add-team-memory, add-validation-case',
+  'supported change kinds: add-agent, edit-agent-prompt, edit-team-workflow, add-team-memory, add-validation-case',
   'return strict JSON only',
 ];
 
@@ -165,7 +164,6 @@ function buildArchitectPrompt(room: DiscussionRoom, version: TeamVersionConfig, 
       description: version.description,
       members: version.memberSnapshots.map(memberSnapshotForPrompt),
       workflowPrompt: truncate(version.workflowPrompt, 2400),
-      routingPolicy: version.routingPolicy,
       teamMemory: version.teamMemory,
     },
   };
@@ -174,12 +172,11 @@ function buildArchitectPrompt(room: DiscussionRoom, version: TeamVersionConfig, 
     '你是 Team Architect Agent。你的任务是根据本次房间证据和用户意见，为当前 TeamVersion 生成一份 Evolution PR 草案。',
     '你必须自己判断要提哪些改进；不要套固定规则，不要每次都生成同样的六类 change。',
     '只生成真正能让下一版 Team 更适合用户目标的 change。没有证据支撑的 change 不要生成。',
-    '用户意见是最高优先级输入；如果用户明确要求新增/修改某类成员、提示词、工作流、路由、团队记忆或验证样例，优先围绕这些点生成提案。',
+    '用户意见是最高优先级输入；如果用户明确要求新增/修改某类成员、提示词、工作流、团队记忆或验证样例，优先围绕这些点生成提案。',
     '支持的 change kind 和 after 形状：',
     '- add-agent.after: { "id": "stable-slug", "name": "...", "roleLabel": "...", "provider": "claude-code|opencode|codex", "providerOpts": {}, "systemPrompt": "...", "responsibility": "...", "whenToUse": "..." }',
     '- edit-agent-prompt.after: { "agentId": "existing-member-id", "systemPrompt": "full next prompt" }',
     '- edit-team-workflow.after: "full next workflow prompt" 或 { "workflowPrompt": "full next workflow prompt" }',
-    '- edit-routing-policy.after: object，描述下一版路由策略',
     '- add-team-memory.after: string、string[] 或 { "memory": string|string[] }',
     '- add-validation-case.after: { "title": "...", "failureSummary": "...", "inputSnapshot": ..., "expectedBehavior": "...", "assertionType": "checklist|replay" }',
     '硬约束：',
@@ -277,9 +274,6 @@ function assertChangeContract(change: EvolutionArchitectChange, version: TeamVer
       if (!requireText(change.after) && !requireText(after.workflowPrompt)) throw new EvolutionProposalGenerationError();
       return;
     }
-    case 'edit-routing-policy':
-      if (!isRecord(change.after)) throw new EvolutionProposalGenerationError();
-      return;
     case 'add-team-memory': {
       const after = isRecord(change.after) ? change.after : {};
       if (!requireText(change.after) && !Array.isArray(change.after) && !requireText(after.memory) && !Array.isArray(after.memory)) {
@@ -367,7 +361,7 @@ export async function createEvolutionProposalFromRoom(
     try {
       rawOutput = await agentClient.generateDraft(
         {
-          goal: `${baseVersion.name} v${baseVersion.versionNumber} evolution proposal`,
+          goal: `${baseVersion.name} evolution proposal`,
           schemaName: 'TeamEvolutionProposal',
           schema: EVOLUTION_PROPOSAL_SCHEMA,
           safetyConstraints: SAFETY_CONSTRAINTS,

@@ -622,7 +622,7 @@ describe('F054: validation loop schema and repository', () => {
 });
 
 describe('F053: evolutionRepo', () => {
-  it('persists all six change kinds with evidence and target layer', async () => {
+  it('persists supported change kinds with evidence and target layer', async () => {
     seedTeamV1();
     const { evolutionRepo } = await import('../src/db/repositories/teamEvolution.js');
 
@@ -631,14 +631,13 @@ describe('F053: evolutionRepo', () => {
       teamId: 'software-development',
       baseVersionId: 'software-development-v1',
       targetVersionNumber: 2,
-      summary: '本次建议加强验证、路由和团队记忆。',
+      summary: '本次建议加强验证和团队记忆。',
       feedback: 'Reviewer 没有验证代码',
       changes: [
         { kind: 'add-agent', title: '招募验证专家', why: '需要独立验证', evidenceMessageIds: ['msg-1'], targetLayer: 'members', before: null, after: { id: 'dev-validator', name: '验证专家', roleLabel: '验证', provider: 'claude-code', providerOpts: {}, systemPrompt: '负责验证' }, impact: '新房间多一名验证成员' },
         { kind: 'edit-agent-prompt', title: '强化 Reviewer prompt', why: 'Reviewer 没有验证', evidenceMessageIds: ['msg-1'], targetLayer: 'member-prompt', before: '旧架构 prompt', after: { agentId: 'dev-architect', systemPrompt: '新架构 prompt，必须验证关键结论' }, impact: '后续新房间会要求验证' },
-        { kind: 'edit-team-workflow', title: '增加验证阶段', why: '流程缺验证', evidenceMessageIds: ['msg-1'], targetLayer: 'workflow', before: '旧工作流', after: '新工作流：实现后必须验证', impact: '新版本工作流变化' },
-        { kind: 'edit-routing-policy', title: '实现后路由给 Reviewer', why: '路由不严格', evidenceMessageIds: ['msg-1'], targetLayer: 'routing-policy', before: { handoff: 'loose' }, after: { handoff: 'review-required' }, impact: '新版本路由变化' },
-        { kind: 'add-team-memory', title: '沉淀验证共识', why: '团队需要记住', evidenceMessageIds: ['msg-1'], targetLayer: 'team-memory', before: [], after: ['交付前必须验证关键路径'], impact: '新版本带团队记忆' },
+        { kind: 'edit-team-workflow', title: '增加验证阶段', why: '流程缺验证', evidenceMessageIds: ['msg-1'], targetLayer: 'workflow', before: '旧工作流', after: '新工作流：实现后必须验证', impact: '工作流变化' },
+        { kind: 'add-team-memory', title: '沉淀验证共识', why: '团队需要记住', evidenceMessageIds: ['msg-1'], targetLayer: 'team-memory', before: [], after: ['交付前必须验证关键路径'], impact: '团队记忆变化' },
         { kind: 'add-validation-case', title: '记录失败样例', why: '后续用于 F054', evidenceMessageIds: ['msg-1'], targetLayer: 'validation-case', before: null, after: { title: 'Reviewer 未验证', prompt: '实现后直接交付', expectedOutcome: 'Reviewer 要求验证证据' }, impact: '仅保存样例，不运行门禁' },
       ],
     });
@@ -648,7 +647,6 @@ describe('F053: evolutionRepo', () => {
       'add-agent',
       'edit-agent-prompt',
       'edit-team-workflow',
-      'edit-routing-policy',
       'add-team-memory',
       'add-validation-case',
     ]);
@@ -702,7 +700,7 @@ describe('F053: evolutionRepo', () => {
     );
   });
 
-  it('merges accepted changes into immutable v2 and keeps old room pinned to v1', async () => {
+  it('merges accepted changes and updates the source room to the new Team members', async () => {
     seedTeamV1();
     const { evolutionRepo } = await import('../src/db/repositories/teamEvolution.js');
     const { teamsRepo } = await import('../src/db/repositories/teams.js');
@@ -717,7 +715,7 @@ describe('F053: evolutionRepo', () => {
       changes: [
         { kind: 'edit-agent-prompt', title: '强化 prompt', why: '缺少验证', evidenceMessageIds: ['msg-1'], targetLayer: 'member-prompt', before: '旧架构 prompt', after: { agentId: 'dev-architect', systemPrompt: '新架构 prompt，必须验证关键结论' }, impact: '后续新房间会验证' },
         { kind: 'edit-team-workflow', title: '增加验证阶段', why: '流程缺验证', evidenceMessageIds: ['msg-1'], targetLayer: 'workflow', before: '旧工作流', after: '新工作流：实现后必须验证', impact: '改变工作流' },
-        { kind: 'edit-routing-policy', title: '更新路由', why: '路由不严格', evidenceMessageIds: ['msg-1'], targetLayer: 'routing-policy', before: { handoff: 'loose' }, after: { handoff: 'review-required' }, impact: '改变路由' },
+        { kind: 'add-agent', title: '新增构建工程师', why: '构建事务需要专人负责', evidenceMessageIds: ['msg-1'], targetLayer: 'members', before: null, after: { id: 'build-engineer', name: '构建工程师', roleLabel: '构建工程', provider: 'opencode', providerOpts: {}, systemPrompt: '你负责构建、编译、CI/CD 和制品管理。' }, impact: '当前现场会增加构建工程师' },
         { kind: 'add-team-memory', title: '沉淀共识', why: '需要记住', evidenceMessageIds: ['msg-1'], targetLayer: 'team-memory', before: [], after: ['交付前必须验证关键路径'], impact: '增加记忆' },
         { kind: 'add-validation-case', title: '记录失败样例', why: 'F054 使用', evidenceMessageIds: ['msg-1'], targetLayer: 'validation-case', before: null, after: { title: 'Reviewer 未验证', prompt: '实现后直接交付', expectedOutcome: 'Reviewer 要求验证证据' }, impact: '仅保存样例' },
       ],
@@ -737,12 +735,20 @@ describe('F053: evolutionRepo', () => {
     expect(result.proposal.status).toBe('applied');
     expect(team?.activeVersionId).toBe(v2?.id);
     expect(v2?.versionNumber).toBe(2);
+    expect(v2?.memberIds).toEqual(['dev-architect', 'build-engineer']);
     expect(v2?.workflowPrompt).toBe('新工作流：实现后必须验证');
-    expect(v2?.routingPolicy).toEqual({ handoff: 'review-required' });
+    expect(v2?.routingPolicy).toEqual({ handoff: 'loose' });
     expect(v2?.teamMemory).toEqual(['已有团队记忆', '交付前必须验证关键路径']);
     expect(v2?.memberSnapshots[0].systemPrompt).toBe('新架构 prompt，必须验证关键结论');
+    expect(v2?.memberSnapshots[1]).toMatchObject({
+      id: 'build-engineer',
+      name: '构建工程师',
+      roleLabel: '构建工程',
+    });
     expect(v1?.workflowPrompt).toBe('旧工作流');
-    expect(room?.teamVersionId).toBe('software-development-v1');
+    expect(room?.teamVersionId).toBe(v2?.id);
+    expect(room?.agents.map(agent => agent.configId)).toEqual(['dev-architect', 'build-engineer']);
+    expect(room?.agents.map(agent => agent.name)).toEqual(['主架构师', '构建工程师']);
 
     const validationCases = db.prepare('SELECT * FROM team_validation_cases').all() as Record<string, unknown>[];
     expect(validationCases).toHaveLength(1);

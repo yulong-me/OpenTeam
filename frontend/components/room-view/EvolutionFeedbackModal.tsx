@@ -10,7 +10,6 @@ interface EvolutionFeedbackModalProps {
   error: string | null
   creating: boolean
   teamName?: string
-  currentVersionNumber?: number
   busyAgents?: Agent[]
   stoppingAndSubmitting?: boolean
   onDraftChange: (draft: string) => void
@@ -25,7 +24,6 @@ export function EvolutionFeedbackModal({
   error,
   creating,
   teamName,
-  currentVersionNumber,
   busyAgents = [],
   stoppingAndSubmitting = false,
   onDraftChange,
@@ -37,8 +35,6 @@ export function EvolutionFeedbackModal({
   const feedbackTextareaRef = useRef<HTMLTextAreaElement>(null)
   const roomBusy = busyAgents.length > 0
   const actionInProgress = creating || stoppingAndSubmitting
-  const currentVersionLabel = `v${currentVersionNumber ?? '?'}`
-  const nextVersionLabel = typeof currentVersionNumber === 'number' ? `v${currentVersionNumber + 1}` : 'v?'
 
   useEffect(() => {
     feedbackTextareaRef.current?.focus()
@@ -124,9 +120,6 @@ export function EvolutionFeedbackModal({
           </div>
           <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[12.5px] text-ink-soft">
             <span>{teamName ?? '当前 Team'}</span>
-            <span className="rounded-full border border-line bg-surface-muted px-2 py-0.5 font-mono text-[11px] text-ink-soft">
-              {currentVersionLabel} → {nextVersionLabel}
-            </span>
           </div>
         </div>
 

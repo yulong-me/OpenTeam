@@ -22,7 +22,6 @@ interface AgentPanelProps {
   roomId?: string
   agents: Agent[]
   teamName?: string
-  teamVersionNumber?: number
   workspace?: string
   skillSummary?: RoomSkillSummary
   sessionTelemetryByAgent?: Record<string, SessionTelemetry>
@@ -581,7 +580,6 @@ export function AgentPanel({
   roomId,
   agents,
   teamName,
-  teamVersionNumber,
   workspace,
   skillSummary,
   sessionTelemetryByAgent,
@@ -597,7 +595,7 @@ export function AgentPanel({
   const mobileDrawerRef = useRef<HTMLDivElement>(null)
   const mobileCloseButtonRef = useRef<HTMLButtonElement>(null)
   const mobileSubtitle = teamName
-    ? `${teamName}${teamVersionNumber ? ` · v${teamVersionNumber}` : ''} · ${agents.length} 人`
+    ? `${teamName} · ${agents.length} 人`
     : `${agents.length} 位成员`
 
   useEffect(() => {
@@ -839,7 +837,9 @@ function PanelContent({
         )}
 
         {showExtras && workspace && (
-          <WorkspaceSidebar workspacePath={workspace} />
+          <div className="workspace-section-offset pt-3">
+            <WorkspaceSidebar workspacePath={workspace} />
+          </div>
         )}
 
         {showExtras && hasEffectiveSkills && skillSummary && (

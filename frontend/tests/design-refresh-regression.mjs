@@ -30,6 +30,7 @@ assert.match(sidebar, /发起任务/)
 assert.match(sidebar, /⌘K/)
 assert.match(sidebar, /data-command-palette="true"/)
 assert.match(sidebar, /搜索任务记录、最近消息或操作/)
+assert.doesNotMatch(sidebar, /本机工作区|本级工作区/)
 
 assert.match(composer, /@\$?\{?agents\[0\]\?\.name/)
 assert.match(composer, /先 @ 选择一位 Team 成员/)

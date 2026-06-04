@@ -99,7 +99,7 @@ export function RoomActionArea({
                 type="button"
                 disabled
                 className="inline-flex items-center justify-end gap-1.5 rounded-md px-1 py-0.5 text-[11.5px] text-ink-faint disabled:cursor-not-allowed"
-                title="结论摘要需要独立总结入口，当前版本暂不自动生成"
+                title="结论摘要需要独立总结入口，当前功能暂不自动生成"
               >
                 <FileText className="h-3 w-3" aria-hidden />
                 让 Team 总结一份结论 <span aria-hidden>·</span> <i>暂未启用</i>

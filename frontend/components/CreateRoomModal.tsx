@@ -77,7 +77,6 @@ interface TeamDraft {
   members: TeamDraftMember[]
   workflow: string
   teamProtocol: string
-  routingPolicy: Record<string, unknown>
   teamMemory: string[]
   validationCases: TeamDraftValidationCase[]
   generationRationale: string
@@ -214,44 +213,6 @@ function getUserFacingError(error: unknown, fallback = '网络错误，请重试
   return fallback
 }
 
-function getFirstText(record: Record<string, unknown>, keys: string[]): string {
-  for (const key of keys) {
-    const value = record[key]
-    if (typeof value === 'string' && value.trim().length > 0) return value.trim()
-  }
-  return ''
-}
-
-function formatRoutingRule(rule: unknown): string {
-  if (typeof rule === 'string') return rule.trim()
-  if (!rule || typeof rule !== 'object' || Array.isArray(rule)) return ''
-
-  const item = rule as Record<string, unknown>
-  const trigger = getFirstText(item, ['when', 'condition', 'trigger', 'scenario', 'input', 'if', 'on'])
-  const target = getFirstText(item, ['memberRole', 'role', 'member', 'agent', 'target', 'to', 'owner', 'routeTo', 'assignee'])
-  const action = getFirstText(item, ['action', 'behavior', 'instruction'])
-
-  if (trigger && target) return `${trigger} → ${target}`
-  if (trigger && action) return `${trigger}：${action}`
-  if (target && action) return `${target}：${action}`
-
-  const textValues = Object.values(item)
-    .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
-    .map(value => value.trim())
-  if (textValues.length >= 2) return `${textValues[0]} → ${textValues[1]}`
-  return textValues[0] ?? ''
-}
-
-function formatRoutingPolicy(policy: Record<string, unknown>): string[] {
-  const candidateLists = [policy.rules, policy.routes, policy.routingRules, policy.conditions]
-  for (const candidate of candidateLists) {
-    if (!Array.isArray(candidate)) continue
-    const rules = candidate.map(formatRoutingRule).filter(Boolean)
-    if (rules.length > 0) return rules
-  }
-  return []
-}
-
 function buildCreatedTeamListItem(data: CreateTeamResponse): TeamListItem | null {
   const team = data.team
   const version = data.version
@@ -284,7 +245,6 @@ function buildCreatedTeamListItem(data: CreateTeamResponse): TeamListItem | null
     memberIds: version.memberIds,
     memberSnapshots: version.memberSnapshots,
     workflowPrompt: version.workflowPrompt,
-    routingPolicy: version.routingPolicy,
     teamMemory: version.teamMemory,
     maxA2ADepth: typeof version.maxA2ADepth === 'number' ? version.maxA2ADepth : 5,
   }
@@ -384,8 +344,6 @@ export default function CreateRoomModal({
   const providerBlockerMessage = selectedCliBlockers.length > 0
     ? `执行工具未准备好：${[...new Set(selectedCliBlockers.map(worker => providerReadiness[worker.provider]?.label ?? worker.provider))].join('、')}`
     : ''
-  const draftRoutingRules = teamDraft ? formatRoutingPolicy(teamDraft.routingPolicy) : []
-
   function finishRoomCreation(roomId: string) {
     onClose()
     if (onRoomCreated) {
@@ -862,7 +820,7 @@ export default function CreateRoomModal({
                         options={teams.map(team => ({
                           value: team.id,
                           label: team.name,
-                          description: `v${team.activeVersion.versionNumber} · ${team.members.length} 位成员`,
+                          description: `${team.members.length} 位成员`,
                         }))}
                       />
                     ) : (
@@ -880,9 +838,6 @@ export default function CreateRoomModal({
                   {!loadingTeams && selectedTeam && (
                     <div className="mt-3 rounded-[10px] border border-line bg-surface p-3.5">
                       <div className="flex flex-wrap items-center gap-2 text-[12px] text-ink-soft">
-                        <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[11px] font-semibold text-accent">当前版本</span>
-                        <span className="font-mono text-ink">v{selectedTeam.activeVersion.versionNumber}</span>
-                        <span>·</span>
                         <span>{selectedTeam.members.length} 位成员</span>
                       </div>
                       {selectedTeam.description && (
@@ -1044,24 +999,15 @@ export default function CreateRoomModal({
                       </div>
 
                       <details className="mt-3 rounded-lg border border-line bg-surface-muted/60 px-3 py-2">
-                        <summary className="cursor-pointer text-[12.5px] font-semibold text-ink-soft">协作方式 · 分工规则 · 检查方式</summary>
+                        <summary className="cursor-pointer text-[12.5px] font-semibold text-ink-soft">协作方式 · 团队协议 · 检查方式</summary>
                         <div className="mt-3 grid gap-3 md:grid-cols-2">
                           <div>
                             <p className="text-[11px] font-bold text-ink-soft">协作方式</p>
                             <p className="mt-1 whitespace-pre-line rounded-xl border border-line bg-surface p-3 text-[12px] leading-relaxed text-ink-soft">{teamDraft.workflow}</p>
                           </div>
                           <div>
-                            <p className="text-[11px] font-bold text-ink-soft">分工规则</p>
-                            <ul className="mt-1 space-y-1.5 rounded-xl border border-line bg-surface p-3 text-[12px] leading-relaxed text-ink-soft">
-                              {draftRoutingRules.length > 0 ? draftRoutingRules.map((rule, index) => (
-                                <li key={`${rule}-${index}`} className="flex gap-2">
-                                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-accent/70" />
-                                  <span>{rule}</span>
-                                </li>
-                              )) : (
-                                <li>按成员职责自动分配任务。</li>
-                              )}
-                            </ul>
+                            <p className="text-[11px] font-bold text-ink-soft">团队协议</p>
+                            <p className="mt-1 whitespace-pre-line rounded-xl border border-line bg-surface p-3 text-[12px] leading-relaxed text-ink-soft">{teamDraft.teamProtocol}</p>
                           </div>
                         </div>
                         <div className="mt-3">
@@ -1145,7 +1091,7 @@ export default function CreateRoomModal({
           <div className="shrink-0 border-t border-line px-6 py-3.5 bg-surface-muted">
             {teamDraftOpen ? (
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <span className="text-[11.5px] text-ink-soft">方案确认后会创建 Team v1，并立即进入协作现场</span>
+                <span className="text-[11.5px] text-ink-soft">方案确认后会创建 Team，并立即进入协作现场</span>
                 <div className="flex flex-wrap justify-end gap-2">
                   <button
                     type="button"

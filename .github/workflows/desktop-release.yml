@@ -155,15 +155,12 @@ jobs:
         env:
           DESKTOP_PUBLISH_MODE: ${{ (github.ref_type == 'tag' || inputs.publish == 'always') && 'always' || 'never' }}
           DESKTOP_TARGET_PLATFORM: win32
-          CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
 
       - name: Build and publish desktop artifacts
         run: pnpm desktop:publish
         if: github.ref_type == 'tag' || inputs.publish == 'always'
         env:
-          CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+          CSC_IDENTITY_AUTO_DISCOVERY: false
 
       - name: Build desktop artifacts without publishing
         run: pnpm desktop:dist:local

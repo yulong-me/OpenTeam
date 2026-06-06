@@ -38,8 +38,12 @@ if (publishMode === 'always') {
     requireEnv('APPLE_APP_SPECIFIC_PASSWORD');
     requireEnv('APPLE_TEAM_ID');
   } else if (platform === 'win32') {
-    requireEnv('CSC_LINK');
-    requireEnv('CSC_KEY_PASSWORD');
+    if (process.env.CSC_LINK || process.env.CSC_KEY_PASSWORD) {
+      requireEnv('CSC_LINK');
+      requireEnv('CSC_KEY_PASSWORD');
+    } else {
+      console.warn('Windows publish builds are unsigned unless WIN_CSC_LINK is configured.');
+    }
   } else {
     failures.push(`Unsupported desktop publish platform: ${platform}`);
   }

@@ -198,8 +198,8 @@ assert.match(configureSigningSource, /gh', \['secret', 'set'/, 'macOS signing se
 
 assert.match(releaseWorkflow, /name: Desktop Release/, 'release workflow must exist');
 assert.match(releaseWorkflow, /macos-latest/, 'release workflow must build macOS artifacts');
-assert.doesNotMatch(releaseWorkflow, /windows-latest/, 'macOS release workflow must not be blocked by Windows packaging');
-assert.match(releaseWorkflow, /branches:\s*\n\s*- codex\/desktop-app/, 'release workflow must package macOS artifacts when this branch is pushed');
+assert.match(releaseWorkflow, /windows-latest/, 'release workflow must build Windows artifacts');
+assert.match(releaseWorkflow, /branches:\s*\n\s*- codex\/desktop-app\s*\n\s*- codex\/windows-client-packaging/, 'release workflow must package desktop artifacts when packaging branches are pushed');
 assert.match(releaseWorkflow, /github\.ref_type == 'tag'/, 'release workflow must publish only for tag/manual release runs');
 assert.match(releaseWorkflow, /pnpm desktop:publish/, 'release workflow must publish electron-builder artifacts');
 assert.match(releaseWorkflow, /pnpm desktop:dist:local/, 'release workflow must support local artifact builds without publishing');
@@ -208,9 +208,13 @@ assert.match(releaseWorkflow, /pnpm run desktop:verify-artifacts/, 'release work
 assert.match(releaseWorkflow, /pnpm run desktop:verify-signing/, 'release workflow must verify signed and notarized macOS artifacts');
 assert.match(releaseWorkflow, /pnpm run desktop:verify-installability/, 'release workflow must verify signed dmg installability');
 assert.match(releaseWorkflow, /DESKTOP_TARGET_PLATFORM: darwin/, 'release workflow must preflight macOS secrets');
+assert.match(releaseWorkflow, /DESKTOP_TARGET_PLATFORM: win32/, 'release workflow must preflight Windows secrets');
 assert.match(releaseWorkflow, /path: release\/OpenTeam-\*-arm64\.dmg/, 'branch macOS artifacts should upload only the installable dmg');
 assert.doesNotMatch(releaseWorkflow, /release\/\*\.zip/, 'branch macOS artifact upload must not include updater zip files');
-assert.doesNotMatch(releaseWorkflow, /release\/\*\.yml/, 'branch macOS artifact upload must not include update metadata');
+assert.match(releaseWorkflow, /name: desktop-windows/, 'branch Windows artifacts should upload under a distinct artifact name');
+assert.match(releaseWorkflow, /release\/\*\.exe/, 'branch Windows artifacts should upload the NSIS installer');
+assert.match(releaseWorkflow, /release\/latest\.yml/, 'branch Windows artifacts should upload update metadata');
+assert.match(releaseWorkflow, /release\/\*\.blockmap/, 'branch Windows artifacts should upload blockmap metadata');
 assert.match(releaseWorkflow, /CSC_LINK/, 'release workflow must support code signing certificates');
 assert.match(releaseWorkflow, /APPLE_ID/, 'release workflow must support macOS notarization credentials');
-assert.doesNotMatch(releaseWorkflow, /WIN_CSC_LINK/, 'macOS release workflow must not require Windows code signing certificates');
+assert.match(releaseWorkflow, /WIN_CSC_LINK/, 'release workflow must support Windows code signing certificates');

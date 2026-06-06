@@ -114,9 +114,13 @@ assert.match(backendServerSource, /BACKEND_HOST = process\.env\.BACKEND_HOST \|\
 assert.match(rebuildSource, /require\('electron\/package\.json'\)\.version/, 'native rebuild must target the installed Electron version');
 assert.match(rebuildSource, /resolve\(root, 'backend'\)/, 'native rebuild must operate on backend dependencies');
 assert.match(rebuildSource, /better-sqlite3/, 'native rebuild must include better-sqlite3');
+assert.match(rebuildSource, /npm_execpath/, 'native rebuild must reuse the active pnpm entrypoint on Windows runners');
+assert.match(rebuildSource, /result\.error/, 'native rebuild must report pnpm spawn failures');
 assert.match(rebuildSource, /codesign/, 'native rebuild must ad-hoc sign rebuilt macOS native modules');
 assert.match(rebuildSource, /better_sqlite3\.node/, 'native rebuild must sign the rebuilt better-sqlite3 binary');
 assert.match(buildSource, /buildMacDistributables/, 'desktop build script must customize macOS artifact generation');
+assert.match(buildSource, /npm_execpath/, 'desktop build script must reuse the active pnpm entrypoint on Windows runners');
+assert.match(buildSource, /result\.error/, 'desktop build script must report pnpm spawn failures');
 assert.match(buildSource, /macDryRunConfigPath/, 'desktop build script must isolate local dry-run macOS signing config');
 assert.match(buildSource, /macPublishConfigPath/, 'desktop publish builds must use a macOS config that injects updater metadata');
 assert.match(buildSource, /writeMacGithubUpdateConfig/, 'desktop build script must generate GitHub updater provider config');

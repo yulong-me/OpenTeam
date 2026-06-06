@@ -51,6 +51,7 @@ assert.deepEqual(packageJson.build.publish, [{
 assert.deepEqual(packageJson.build.mac.target, ['dmg', 'zip']);
 assert.equal(packageJson.build.win.target[0].target, 'nsis');
 assert.deepEqual(packageJson.build.win.target[0].arch, ['x64']);
+assert.equal(packageJson.build.win.artifactName, '${productName}-Setup-${version}.${ext}');
 assert.equal(packageJson.build.nsis.oneClick, false);
 assert.equal(packageJson.build.nsis.perMachine, false);
 assert.equal(packageJson.build.generateUpdatesFilesForAllChannels, true);

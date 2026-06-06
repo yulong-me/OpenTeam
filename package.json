@@ -31,6 +31,7 @@
     "desktop:verify-signing": "node scripts/verify-macos-signing.mjs",
     "desktop:verify-installability": "node scripts/verify-macos-installability.mjs",
     "desktop:configure-mac-signing": "node scripts/configure-macos-signing-secrets.mjs",
+    "desktop:prune-release-assets": "node scripts/prune-desktop-release-assets.mjs",
     "desktop:dev": "pnpm build && pnpm run desktop:rebuild-native && electron desktop/main.cjs",
     "desktop:pack": "node scripts/build-desktop.mjs pack",
     "desktop:dist": "node scripts/build-desktop.mjs dist-local",
@@ -40,7 +41,7 @@
     "desktop:publish": "node scripts/build-desktop.mjs publish",
     "test:node-version": "node tests/check-node-version.test.mjs",
     "test:better-sqlite-native": "node tests/ensure-better-sqlite.test.mjs",
-    "test:desktop-launcher": "node tests/desktop-launcher.test.mjs && node tests/desktop-express-protocol.test.mjs && node tests/project-rename.test.mjs",
+    "test:desktop-launcher": "node tests/desktop-launcher.test.mjs && node tests/desktop-express-protocol.test.mjs && node tests/project-rename.test.mjs && node tests/prune-desktop-release-assets.test.mjs",
     "install:all": "pnpm -r install"
   },
   "build": {

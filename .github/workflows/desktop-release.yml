@@ -108,6 +108,13 @@ jobs:
           DESKTOP_PUBLISH_MODE: always
           DESKTOP_TARGET_PLATFORM: darwin
 
+      - name: Keep installer release assets only
+        run: pnpm run desktop:prune-release-assets
+        if: github.ref_type == 'tag' || inputs.publish == 'always'
+        env:
+          DESKTOP_TARGET_PLATFORM: darwin
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Upload local artifacts
         uses: actions/upload-artifact@v4
         if: github.ref_type != 'tag' && inputs.publish != 'always'
@@ -174,12 +181,16 @@ jobs:
           DESKTOP_PUBLISH_MODE: ${{ (github.ref_type == 'tag' || inputs.publish == 'always') && 'always' || 'never' }}
           DESKTOP_TARGET_PLATFORM: win32
 
+      - name: Keep installer release assets only
+        run: pnpm run desktop:prune-release-assets
+        if: github.ref_type == 'tag' || inputs.publish == 'always'
+        env:
+          DESKTOP_TARGET_PLATFORM: win32
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Upload local artifacts
         uses: actions/upload-artifact@v4
         if: github.ref_type != 'tag' && inputs.publish != 'always'
         with:
           name: desktop-windows
-          path: |
-            release/*.exe
-            release/latest.yml
-            release/*.blockmap
+          path: release/*.exe

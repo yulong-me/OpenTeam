@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - codex/desktop-app
+      - codex/windows-client-packaging
     tags:
       - "v*.*.*"
   workflow_dispatch:
@@ -113,3 +114,75 @@ jobs:
         with:
           name: desktop-macos
           path: release/OpenTeam-*-arm64.dmg
+
+  windows:
+    name: Windows
+    runs-on: windows-latest
+    timeout-minutes: 60
+
+    env:
+      CI: true
+      NEXT_TELEMETRY_DISABLED: 1
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.32.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.1
+          cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            backend/pnpm-lock.yaml
+            frontend/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install:all --frozen-lockfile
+
+      - name: Test desktop release contract
+        run: pnpm run test:desktop-launcher
+
+      - name: Release preflight
+        run: pnpm run desktop:preflight
+        env:
+          DESKTOP_PUBLISH_MODE: ${{ (github.ref_type == 'tag' || inputs.publish == 'always') && 'always' || 'never' }}
+          DESKTOP_TARGET_PLATFORM: win32
+          CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+
+      - name: Build and publish desktop artifacts
+        run: pnpm desktop:publish
+        if: github.ref_type == 'tag' || inputs.publish == 'always'
+        env:
+          CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+
+      - name: Build desktop artifacts without publishing
+        run: pnpm desktop:dist:local
+        if: github.ref_type != 'tag' && inputs.publish != 'always'
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+
+      - name: Verify desktop artifacts
+        run: pnpm run desktop:verify-artifacts
+        env:
+          DESKTOP_PUBLISH_MODE: ${{ (github.ref_type == 'tag' || inputs.publish == 'always') && 'always' || 'never' }}
+          DESKTOP_TARGET_PLATFORM: win32
+
+      - name: Upload local artifacts
+        uses: actions/upload-artifact@v4
+        if: github.ref_type != 'tag' && inputs.publish != 'always'
+        with:
+          name: desktop-windows
+          path: |
+            release/*.exe
+            release/latest.yml
+            release/*.blockmap

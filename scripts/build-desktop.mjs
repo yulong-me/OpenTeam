@@ -4,7 +4,6 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const root = resolve(import.meta.dirname, '..');
-const pnpm = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
 const mode = process.argv[2] ?? 'pack';
 const packageJson = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf8'));
 
@@ -15,13 +14,38 @@ function run(command, args) {
     env: process.env,
   });
 
+  if (result.error) {
+    console.error(`Failed to start ${command}: ${result.error.message}`);
+    process.exit(1);
+  }
+
   if (result.status !== 0) {
     process.exit(result.status ?? 1);
   }
 }
 
+function pnpmCommand(args) {
+  const npmExecPath = process.env.npm_execpath;
+  if (npmExecPath?.includes('pnpm')) {
+    return {
+      command: process.execPath,
+      args: [npmExecPath, ...args],
+    };
+  }
+
+  return {
+    command: process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm',
+    args,
+  };
+}
+
+function runPnpm(args) {
+  const command = pnpmCommand(args);
+  run(command.command, command.args);
+}
+
 function electronBuilder(args) {
-  run(pnpm, ['exec', 'electron-builder', ...args]);
+  runPnpm(['exec', 'electron-builder', ...args]);
 }
 
 function writeMacGithubUpdateConfig(path) {
@@ -76,14 +100,15 @@ function macPublishConfigPath() {
 }
 
 function buildRuntime() {
-  run(pnpm, ['build']);
-  run(pnpm, ['run', 'desktop:prepare-frontend-standalone']);
-  run(pnpm, ['run', 'desktop:rebuild-native']);
+  runPnpm(['build']);
+  runPnpm(['run', 'desktop:prepare-frontend-standalone']);
+  runPnpm(['run', 'desktop:rebuild-native']);
 }
 
 function preflight(publish) {
   const platform = process.platform;
-  const result = spawnSync(pnpm, ['run', 'desktop:preflight'], {
+  const command = pnpmCommand(['run', 'desktop:preflight']);
+  const result = spawnSync(command.command, command.args, {
     cwd: root,
     stdio: 'inherit',
     env: {
@@ -92,6 +117,11 @@ function preflight(publish) {
       DESKTOP_TARGET_PLATFORM: platform,
     },
   });
+
+  if (result.error) {
+    console.error(`Failed to start ${command.command}: ${result.error.message}`);
+    process.exit(1);
+  }
 
   if (result.status !== 0) {
     process.exit(result.status ?? 1);

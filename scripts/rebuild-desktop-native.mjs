@@ -7,9 +7,23 @@ import { spawnSync } from 'node:child_process';
 const require = createRequire(import.meta.url);
 const root = resolve(import.meta.dirname, '..');
 const electronVersion = require('electron/package.json').version;
-const pnpm = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
 
-const result = spawnSync(pnpm, [
+function pnpmCommand(args) {
+  const npmExecPath = process.env.npm_execpath;
+  if (npmExecPath?.includes('pnpm')) {
+    return {
+      command: process.execPath,
+      args: [npmExecPath, ...args],
+    };
+  }
+
+  return {
+    command: process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm',
+    args,
+  };
+}
+
+const command = pnpmCommand([
   'exec',
   'electron-rebuild',
   '--force',
@@ -19,11 +33,18 @@ const result = spawnSync(pnpm, [
   resolve(root, 'backend'),
   '--which-module',
   'better-sqlite3',
-], {
+]);
+
+const result = spawnSync(command.command, command.args, {
   cwd: root,
   stdio: 'inherit',
   env: process.env,
 });
+
+if (result.error) {
+  console.error(`Failed to start ${command.command}: ${result.error.message}`);
+  process.exit(1);
+}
 
 if (result.status !== 0) {
   process.exit(result.status ?? 1);
@@ -44,6 +65,10 @@ if (process.platform === 'darwin') {
       cwd: root,
       stdio: 'inherit',
     });
+    if (signResult.error) {
+      console.error(`Failed to start codesign: ${signResult.error.message}`);
+      process.exit(1);
+    }
     if (signResult.status !== 0) {
       process.exit(signResult.status ?? 1);
     }

@@ -33,15 +33,38 @@ export function verifyBetterSqliteBinding(loadBetterSqlite = loadBetterSqliteMod
   db.close();
 }
 
+export function pnpmCommand(args, {
+  npmExecPath = process.env.npm_execpath,
+  nodePath = process.execPath,
+  platform = process.platform,
+} = {}) {
+  if (npmExecPath?.includes('pnpm')) {
+    return {
+      command: nodePath,
+      args: [npmExecPath, ...args],
+    };
+  }
+
+  return {
+    command: platform === 'win32' ? 'pnpm.cmd' : 'pnpm',
+    args,
+  };
+}
+
 export function rebuildBetterSqlite() {
   rmSync(path.join(betterSqlitePackageDir(), 'build'), { recursive: true, force: true });
 
-  const pnpmCmd = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
-  const result = spawnSync(pnpmCmd, ['rebuild', 'better-sqlite3'], {
+  const command = pnpmCommand(['rebuild', 'better-sqlite3']);
+  const result = spawnSync(command.command, command.args, {
     cwd: backendDir,
     stdio: 'inherit',
     env: process.env,
   });
+
+  if (result.error) {
+    console.error(`Failed to start ${command.command}: ${result.error.message}`);
+    process.exit(1);
+  }
 
   if (result.status !== 0) {
     process.exit(result.status ?? 1);

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {
   ensureBetterSqlite,
   isNativeBindingMismatch,
+  pnpmCommand,
   verifyBetterSqliteBinding,
 } from '../backend/scripts/ensure-better-sqlite.mjs';
 
@@ -24,6 +25,18 @@ import {
     ['construct', ':memory:'],
     ['close'],
   ]);
+}
+
+{
+  const command = pnpmCommand(['rebuild', 'better-sqlite3'], {
+    npmExecPath: '/tmp/pnpm.cjs',
+    nodePath: '/usr/local/bin/node',
+  });
+
+  assert.deepEqual(command, {
+    command: '/usr/local/bin/node',
+    args: ['/tmp/pnpm.cjs', 'rebuild', 'better-sqlite3'],
+  });
 }
 
 {
